@@ -53,6 +53,10 @@ PERIOD_MIN_REGION = 25.0  # shorter than this cannot show a repeat worth trustin
 # whole interlude, both far quieter than the congregation singing. Singing starts
 # at the first stanza cell within this margin of the region's loudest cell.
 SINGING_DB = 3.0
+# How long audio must hold above the floor to count as an element beginning
+# rather than a blip. The ambient bursts between elements run 1-3 s and a closing
+# Amen 3 s; an organ introduction holds and runs on into the singing.
+INTRO_HOLD = 5.0
 
 
 def _envelope(wav: Path):
@@ -168,17 +172,32 @@ def analyze(run: Path) -> dict:
         # A region must not *begin* in near-silence. Ambient noise while a leader
         # is still speaking bridges into the music that follows and drags the
         # region's start a minute early — which then reads as singing.
+        #
+        # Measured against the FLOOR, not against the region's own loudest part.
+        # Taking the 75th percentile of a whole hymn set the bar at -21 dB, three
+        # decibels under the congregation, so a -30 dB organ introduction counted
+        # as silence: 30 to 55 s of it was discarded and the deck reached the hymn
+        # half a minute after the music started. What separates an introduction
+        # from the blips this guard exists to reject is not loudness but duration,
+        # so require the level to HOLD. No margin is subtracted afterwards — two
+        # seconds of it put the start ahead of where the introduction is audible.
         lo0, hi0 = int(t0 / step), int(t1 / step)
-        seg0 = db[lo0:hi0]
+        # Smoothed rather than raw: one 0.5 s dip of 1.1 dB inside the hymn 562
+        # introduction reset the counter and threw the start seven seconds past the
+        # point where the organ is plainly audible. A micro-dip is not silence.
+        seg0 = smooth[lo0:hi0]
         if len(seg0):
-            strong = float(np.percentile(seg0, 75)) - SINGING_DB
-            idx = np.nonzero(seg0 >= strong)[0]
-            if len(idx):
-                first = t0 + float(idx[0]) * step
-                if first - t0 > 5.0:          # trim only a substantial quiet lead-in
-                    t0 = round(first - 2.0, 2)
-                    if t1 - t0 < MIN_REGION:
-                        continue
+            held, begins = 0.0, None
+            for k, lvl in enumerate(seg0):
+                held = held + step if lvl > floor + LOUD_OVER_FLOOR else 0.0
+                if held >= INTRO_HOLD:
+                    begins = t0 + (k + 1) * step - held
+                    break
+            # Nothing sustained anywhere in it: a short sung response, left alone.
+            if begins is not None and begins - t0 > 5.0:
+                t0 = round(begins, 2)
+                if t1 - t0 < MIN_REGION:
+                    continue
         lo, hi = int(t0 / step), int(t1 / step)
         level = float(np.median(db[lo:hi]))
         if level < floor + LEVEL_OVER_FLOOR:
