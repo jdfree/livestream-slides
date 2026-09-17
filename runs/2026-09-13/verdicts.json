@@ -1,0 +1,272 @@
+[
+  {
+    "t": 544,
+    "to_slide": 6,
+    "note": "opening hymn: last singing is 9:04, move then",
+    "kind": "exact"
+  },
+  {
+    "t": 623,
+    "to_slide": 9,
+    "note": "canticle: first transition was good",
+    "kind": "good"
+  },
+  {
+    "t": 632.3,
+    "to_slide": 10,
+    "note": "Transition a bit sooner",
+    "kind": "exact"
+  },
+  {
+    "t": 638.1,
+    "to_slide": 11,
+    "note": "transition sooner",
+    "kind": "exact"
+  },
+  {
+    "t": 650.1,
+    "to_slide": 13,
+    "note": "transition sooner",
+    "kind": "exact"
+  },
+  {
+    "t": 664.5,
+    "to_slide": 15,
+    "note": "transition when music ends",
+    "kind": "exact"
+  },
+  {
+    "t": 695.2,
+    "to_slide": 16,
+    "note": "transition after words end",
+    "kind": "exact"
+  },
+  {
+    "t": 701.5,
+    "to_slide": 17,
+    "note": "music ended, so transition to text slide that follows",
+    "kind": "exact"
+  },
+  {
+    "t": 779.5,
+    "to_slide": 19,
+    "note": "Reading is ended, so transition to next slide",
+    "kind": "exact"
+  },
+  {
+    "t": 838,
+    "to_slide": 20,
+    "note": "psalm: advance here, not 13:20 (refrain repeats)",
+    "kind": "exact"
+  },
+  {
+    "t": 919,
+    "to_slide": 21,
+    "note": "psalm: Gloria Patri begins",
+    "kind": "exact"
+  },
+  {
+    "t": 1217.4,
+    "to_slide": 24,
+    "note": "Music started; time to transition to next hymn",
+    "kind": "exact"
+  },
+  {
+    "t": 1277.4,
+    "to_slide": 25,
+    "note": "Verse 1 ended; switch to verse 2",
+    "kind": "exact"
+  },
+  {
+    "t": 1309,
+    "to_slide": 26,
+    "note": "Verse ended; switch to verse 3.",
+    "kind": "exact"
+  },
+  {
+    "t": 1339,
+    "to_slide": 27,
+    "note": "hymn 319 verse 3->4 was good",
+    "kind": "good"
+  },
+  {
+    "t": 1340.5,
+    "to_slide": 27,
+    "note": "Verse ended; switch to verse 4",
+    "kind": "exact"
+  },
+  {
+    "t": 1395,
+    "to_slide": 30,
+    "note": "23:15 music started; should have left the spoken slide",
+    "kind": "exact"
+  },
+  {
+    "t": 1402.6,
+    "to_slide": 31,
+    "note": "Words ended; move to next slide",
+    "kind": "exact"
+  },
+  {
+    "t": 1411.7,
+    "to_slide": 33,
+    "note": "Words ended; move to next music slide",
+    "kind": "exact"
+  },
+  {
+    "t": 1419.7,
+    "to_slide": 33,
+    "note": "Words ended; move to next slide",
+    "kind": "exact"
+  },
+  {
+    "t": 1430.1,
+    "to_slide": 34,
+    "note": "Music ended; switch to reading after music.",
+    "kind": "exact"
+  },
+  {
+    "t": 1573,
+    "to_slide": 37,
+    "note": "Text ended; move to next slide",
+    "kind": "exact"
+  },
+  {
+    "t": 1575.8,
+    "to_slide": 38,
+    "note": "Music started; move to music slide",
+    "kind": "exact"
+  },
+  {
+    "t": 2417.9,
+    "to_slide": 40,
+    "note": "Music is starting after Amen followed by silence; sermon is clearly over and hymn slide should be up",
+    "kind": "exact"
+  },
+  {
+    "t": 2507.8,
+    "to_slide": 42,
+    "note": "Let congregation start singing \"stone\" before moving. on.",
+    "kind": "exact"
+  },
+  {
+    "t": 2509.2,
+    "to_slide": 43,
+    "note": "Transition by now",
+    "kind": "exact"
+  },
+  {
+    "t": 2547,
+    "to_slide": 45,
+    "note": "\"Lamb\" is done; transition to next words",
+    "kind": "exact"
+  },
+  {
+    "t": 2565.2,
+    "to_slide": 46,
+    "note": "\"Snow\" is done; transition to verse",
+    "kind": "exact"
+  },
+  {
+    "t": 2584.5,
+    "to_slide": 47,
+    "note": "\"repeat\" is done; transition to final refrain of song.",
+    "kind": "exact"
+  },
+  {
+    "t": 2603.8,
+    "to_slide": 48,
+    "note": "Music ends, so transition to next slide",
+    "kind": "exact"
+  },
+  {
+    "t": 2642.2,
+    "to_slide": 48,
+    "note": "\"God the Father Almighty\" occurs twice on this slide; should not transition until entire slide is read.",
+    "kind": "exact"
+  },
+  {
+    "t": 2662.1,
+    "to_slide": 50,
+    "note": "Recitation has ended; offering is starting. Show offering slide.",
+    "kind": "exact"
+  },
+  {
+    "t": 2873,
+    "to_slide": 54,
+    "note": "Music starts, so transition to next music.",
+    "kind": "exact"
+  },
+  {
+    "t": 2901.7,
+    "to_slide": 55,
+    "note": "\"sins, as\" has completed, so go to next slide.",
+    "kind": "exact"
+  },
+  {
+    "t": 2959.6,
+    "to_slide": 58,
+    "note": "Speech ends and music starts, so next slide with music needs to come up.",
+    "kind": "exact"
+  },
+  {
+    "t": 2979,
+    "to_slide": 60,
+    "note": "Recitation ends and music is next, so quick transition.",
+    "kind": "exact"
+  },
+  {
+    "t": 2989.9,
+    "to_slide": 61,
+    "note": "\"Amen\" is done; transition to next song, which is a separate song.",
+    "kind": "exact"
+  },
+  {
+    "t": 3046.3,
+    "to_slide": 61,
+    "note": "Verse has not ended yet",
+    "kind": "exact"
+  },
+  {
+    "t": 3059.3,
+    "to_slide": 62,
+    "note": "\"King\" is sung; now we move to verse 2",
+    "kind": "exact"
+  },
+  {
+    "t": 3076.4,
+    "to_slide": 62,
+    "note": "Verse 2 is barely half done; don't transition early.",
+    "kind": "exact"
+  },
+  {
+    "t": 3092.2,
+    "to_slide": 63,
+    "note": "Verse 2 has finally ended and verse 3 starts",
+    "kind": "exact"
+  },
+  {
+    "t": 3113.5,
+    "to_slide": 63,
+    "note": "Verse 3 is just getting to Allelulias; still significant time before verse 4.",
+    "kind": "exact"
+  },
+  {
+    "t": 3123.6,
+    "to_slide": 64,
+    "note": "Verse 3 ends here; verse 4 starting",
+    "kind": "exact"
+  },
+  {
+    "t": 3172.4,
+    "to_slide": 65,
+    "note": "Music has ended, so move past music slide",
+    "kind": "exact"
+  },
+  {
+    "t": 3176.7,
+    "to_slide": 66,
+    "note": "After brief acknowledgements slide, move to blank final slide",
+    "kind": "exact"
+  }
+]

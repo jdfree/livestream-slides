@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# Run artifacts are large and reproducible: service audio (a 132 MB wav and a
+# 53 MB webm per service), the decks, the rendered slide images, and every
+# machine-derived cache — transcript, music regions, alignment, OMR, reference,
+# decisions, review page.
+runs/**
+
+# Except the human record. It is the evaluation and the one thing here that
+# cannot be regenerated from the source material, so it travels with the repo.
+# Kept in place rather than copied to a fixtures directory: this is the same file
+# the review page writes, so the fixture cannot drift from what was marked.
+!runs/
+!runs/*/
+!runs/*/verdicts.json
