@@ -10,7 +10,6 @@ interventions (8), LLM adjudication. The score says what words alone buy.
 """
 from __future__ import annotations
 
-import bisect
 import json
 import sys
 from pathlib import Path
@@ -18,6 +17,7 @@ from pathlib import Path
 from ..audio import music as music_mod
 from ..ingest import deck as deck_mod, melody
 from ..ingest.text import content_words, syllables
+from . import verdicts
 from .oracle import MIN_WORDS, _duplicates, listen_text
 
 LATENCY = 1.5            # simulated streaming commit delay (s)
@@ -34,7 +34,6 @@ CONFIRM_WINDOW = 45.0
 LOOKAHEAD = 25           # far enough to re-anchor after a long sermon
 MUSIC_SKIP_MAX = 8       # cap on how far a music cue may look for its sung slide
 PASSABLE_WORDS = 8       # below this a slide cannot be tracked by words at all
-TOLERANCE = 2.0          # scoring slack either side of a reference boundary
 MUSIC_CONFIRM = 3.0      # sustained music before it counts as an event
 MUSIC_ONSET_CONFIRM = 1.0  # leaving a speaking slide for a sung one: go at once
 COVER_MUSIC_MIN = 15.0     # music must be sustained before it releases a cover
@@ -43,8 +42,6 @@ SPSYL_PRIOR = 0.55       # seconds per sung syllable before anything is measured
 # while one shown late is barely noticed.
 SNAP_LO, SNAP_HI = 1.0, 1.4     # window around a predicted stanza boundary
 TICK = 0.5
-EARLY_WEIGHT = 3.0       # 12: early errors cost 3x late ones
-LYRIC_LEAD = 10.0        # 6: a stanza handoff lands as the final line begins, not after it
 # A slide cannot be finished before its own text could have been read aloud. The
 # creed prints "God the Father Almighty" in its FIRST line and its last, so the
 # opening line matched the closing six words and reported a 73-word slide spent
@@ -439,65 +436,6 @@ def replay(slides, words, music, latency: float, aligned=None) -> Engine:
     return eng
 
 
-def score(ref: dict, slides: list[deck_mod.Slide], moves: list[dict]) -> dict:
-    by = {s.index: s for s in slides}
-    first = slides[0].index
-    segs = ref["segments"]
-    starts = [g["t0"] for g in segs]
-    tl_t = [0.0] + [m["t"] for m in moves]
-    tl_s = [first] + [m["to"] for m in moves]
-
-    def shown(t):
-        return tl_s[bisect.bisect_right(tl_t, t) - 1]
-
-    def allowed(t):
-        k = bisect.bisect_right(starts, t) - 1
-        return segs[k]["allowed"] if k >= 0 and t < segs[k]["t1"] else None
-
-    step, total, wrong, bad = 0.25, 0.0, 0.0, []
-    t = segs[0]["t0"]
-    while t < segs[-1]["t1"]:
-        a = allowed(t)
-        if a is not None:
-            total += step
-            s = shown(t)
-            if s not in a and not any(s in (allowed(t + d) or []) for d in (-TOLERANCE, TOLERANCE)):
-                wrong += step
-                if bad and bad[-1]["shown"] == s and bad[-1]["t1"] >= t - step / 2:
-                    bad[-1]["t1"] = t + step
-                else:
-                    bad.append({"t0": t, "t1": t + step, "shown": s, "allowed": a})
-        t += step
-
-    errors, missed = [], []
-    for k, o in ref["onsets"].items():
-        b = int(k)
-        if b == first:
-            continue
-        te = next((m["t"] for m in moves if m["to"] == b), None)
-        if te is None:
-            missed.append(b)
-        else:
-            lyric = (by[b].lyrics and b - 1 in by
-                     and content_words(by[b - 1].title) == content_words(by[b].title))
-            errors.append((b, te - o["t0"], LYRIC_LEAD if lyric else TOLERANCE))
-    early = [e for _, e, lead in errors if e < -lead]
-    late = [e for _, e, _ in errors if e > TOLERANCE]
-    weighted = (sum(EARLY_WEIGHT * -e for e in early) + sum(late)) / max(1, len(errors))
-    sung = [g for g in segs if g.get("sung")]
-    reached = shownfor = 0
-    for g in sung:
-        seen = {s for s in tl_s[max(0, bisect.bisect_right(tl_t, g["t0"]) - 1):
-                                bisect.bisect_right(tl_t, g["t1"])]}
-        reached += len(seen & set(g["allowed"]))
-        shownfor += len(g["allowed"])
-    return {"sung_slides_reached": f"{reached}/{shownfor}",
-            "scored_min": round(total / 60, 1), "wrong_pct": round(100 * wrong / total, 1),
-            "transitions": len(errors), "early": len(early), "late": len(late),
-            "missed": missed, "weighted_error_s": round(weighted, 1),
-            "errors": errors, "wrong_spans": bad}
-
-
 def _mmss(t):
     return f"{int(t // 60):2d}:{int(t % 60):02d}"
 
@@ -506,7 +444,6 @@ def main(run: Path, latency: float, no_music: bool = False) -> None:
     slides = deck_mod.load(run / "deck.pptx")
     melody.attach(slides, run / "deck.pptx", run / "lyrics.json")
     words = [json.loads(l) for l in open(run / "words.jsonl")]
-    ref = json.loads((run / "reference.json").read_text())
     aligned = {}
     if not no_music:
         # note_align overlays align: notes win where they are trustworthy, lyrics
@@ -516,22 +453,19 @@ def main(run: Path, latency: float, no_music: bool = False) -> None:
             if path.exists():
                 aligned.update({int(k): v for k, v in json.loads(path.read_text()).items()})
     eng = replay(slides, words, None if no_music else music_mod.analyze(run), latency, aligned)
-    res = score(ref, slides, eng.moves)
-    (run / "decisions.json").write_text(json.dumps({"moves": eng.moves, "score": res}, indent=2))
+    (run / "decisions.json").write_text(json.dumps({"moves": eng.moves}, indent=2))
 
     by = {s.index: s for s in slides}
     print("=== console narration ===")
     for m in eng.moves:
         print(f"{_mmss(m['t'])}  {m['from']:>2} -> {m['to']:<2} {by[m['to']].title[:28]:<28} {m['rule']}")
         print(f"        heard: \"{m['heard']}\"")
-    print("\n=== score ===")
-    for k in ("scored_min", "wrong_pct", "transitions", "early", "late", "missed",
-              "weighted_error_s", "sung_slides_reached"):
-        print(f"{k:18}: {res[k]}")
-    print("\nlargest wrong spans:")
-    for b in sorted(res["wrong_spans"], key=lambda b: b["t0"] - b["t1"])[:10]:
-        print(f"  {_mmss(b['t0'])}-{_mmss(b['t1'])} ({b['t1']-b['t0']:5.0f}s) showed {b['shown']:>2}, "
-              f"reference {b['allowed'][:6]}")
+    res = verdicts.score(run, eng.moves, slides[0].index)
+    print(f"\nagainst the human record: {res['correct']}/{res['checked']}"
+          f"   late {res['late']}  early {res['early']}  never shown {res['never']}")
+    for r in sorted((r for r in res["rows"] if not r["ok"]), key=lambda r: r["want"]):
+        err = "never shown" if r["error"] is None else f"{r['error']:+.1f}s"
+        print(f"  MISS {_mmss(r['want'])} -> {r['to']:>2} {err:>12}   {r['note'][:52]}")
 
 
 if __name__ == "__main__":
