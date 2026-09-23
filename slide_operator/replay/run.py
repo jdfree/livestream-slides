@@ -391,12 +391,19 @@ class Engine:
             if self.by[nxt].is_cover and spent:
                 return self._move(t, nxt, "onto cover: this slide's content is finished")
             if nxt in self.content:
-                if (spent and not self.by[c].musical
-                        and content_words(self.by[c].title) == content_words(self.by[nxt].title)):
+                if spent and not self.by[c].musical:
                     # Only for spoken text. Inside a hymn the aligned words and the
                     # tune decide; letting the spoken handoff fire there advanced
                     # hymn verses about thirty seconds early, every verse.
-                    return self._move(t, nxt, "handoff: the reading continues onto the next slide")
+                    #
+                    # A slide that has been read out is finished whether or not the
+                    # next slide continues the same reading. Requiring a shared
+                    # title meant Invocation -> Confession -> Absolution each had to
+                    # wait until five words of the NEXT slide had been heard, which
+                    # is five seconds of the congregation staring at finished text.
+                    same = content_words(self.by[c].title) == content_words(self.by[nxt].title)
+                    return self._move(t, nxt, "handoff: the reading continues onto the next slide"
+                                      if same else "this slide has been read out")
                 h = _lcs(r, self.words[nxt][:HEAD])
                 if h >= TIER_B and h > cur_hits and not self.by[c].musical:
                     # Inside a hymn the aligned words decide. Garbled singing that

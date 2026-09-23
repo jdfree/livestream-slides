@@ -1,0 +1,188 @@
+[
+  {
+    "t": 288.5,
+    "to_slide": 2,
+    "note": "Transition during last word of verse 1",
+    "kind": "exact"
+  },
+  {
+    "t": 319.1,
+    "to_slide": 3,
+    "note": "transition during last word of verse",
+    "kind": "exact"
+  },
+  {
+    "t": 351,
+    "to_slide": 4,
+    "note": "transition during last word of verse",
+    "kind": "exact"
+  },
+  {
+    "t": 397.4,
+    "to_slide": 7,
+    "note": "Transition during Amen",
+    "kind": "exact"
+  },
+  {
+    "t": 427.9,
+    "to_slide": 8,
+    "note": "Transition during \"actions\"",
+    "kind": "exact"
+  },
+  {
+    "t": 452.6,
+    "to_slide": 9,
+    "note": "Transition during last word of slide",
+    "kind": "exact"
+  },
+  {
+    "t": 474.9,
+    "to_slide": 10,
+    "note": "Transition during Amen",
+    "kind": "exact"
+  },
+  {
+    "t": 484.3,
+    "to_slide": 10,
+    "note": "Transitioned far too early",
+    "kind": "exact"
+  },
+  {
+    "t": 502.7,
+    "to_slide": 11,
+    "note": "Transition now, at end of second and final \"mercy\" of slide 10",
+    "kind": "exact"
+  },
+  {
+    "t": 525.3,
+    "to_slide": 12,
+    "note": "Transition during last word of slide",
+    "kind": "exact"
+  },
+  {
+    "t": 539.9,
+    "to_slide": 12,
+    "note": "transitioned too early again",
+    "kind": "exact"
+  },
+  {
+    "t": 560.3,
+    "to_slide": 13,
+    "note": "Final amen on slide 12 means transition to 13",
+    "kind": "exact"
+  },
+  {
+    "t": 581.4,
+    "to_slide": 14,
+    "note": "Transition during Earth",
+    "kind": "exact"
+  },
+  {
+    "t": 588.5,
+    "to_slide": 15,
+    "note": "Somehow skipped to 17 barely after 15 started. Should stay on 15.",
+    "kind": "exact"
+  },
+  {
+    "t": 640.7,
+    "to_slide": 16,
+    "note": "Transition at end of slide 15",
+    "kind": "exact"
+  },
+  {
+    "t": 666.3,
+    "to_slide": 17,
+    "note": "End of 16; transition to 17",
+    "kind": "exact"
+  },
+  {
+    "t": 683.5,
+    "to_slide": 19,
+    "note": "Transition at end of 19",
+    "kind": "exact"
+  },
+  {
+    "t": 708.3,
+    "to_slide": 20,
+    "note": "Amen on 19 means transition",
+    "kind": "exact"
+  },
+  {
+    "t": 796,
+    "to_slide": 22,
+    "note": "End of 21; go to 22",
+    "kind": "exact"
+  },
+  {
+    "t": 824.4,
+    "to_slide": 23,
+    "note": "22 ends; go to 23 here",
+    "kind": "exact"
+  },
+  {
+    "t": 832.8,
+    "to_slide": 23,
+    "note": "Stay on 23 until finished",
+    "kind": "exact"
+  },
+  {
+    "t": 852.7,
+    "to_slide": 24,
+    "note": "Should just be going to 24 now",
+    "kind": "exact"
+  },
+  {
+    "t": 865.6,
+    "to_slide": 25,
+    "note": "Just starting 25 here",
+    "kind": "exact"
+  },
+  {
+    "t": 892.9,
+    "to_slide": 26,
+    "note": "Just starting 26 now",
+    "kind": "exact"
+  },
+  {
+    "t": 916.2,
+    "to_slide": 27,
+    "note": "Transition to 27 on Amen",
+    "kind": "exact"
+  },
+  {
+    "t": 938.1,
+    "to_slide": 28,
+    "note": "Slide 28 should just appear now",
+    "kind": "exact"
+  },
+  {
+    "t": 958.8,
+    "to_slide": 29,
+    "note": "28 is done; go to 29",
+    "kind": "exact"
+  },
+  {
+    "t": 994,
+    "to_slide": 31,
+    "note": "transition to 31 when music ends",
+    "kind": "exact"
+  },
+  {
+    "t": 1110.6,
+    "to_slide": 34,
+    "note": "Transition 33 to 34 now; it was a bit early",
+    "kind": "exact"
+  },
+  {
+    "t": 1357,
+    "to_slide": 36,
+    "note": "35 to 36 now",
+    "kind": "exact"
+  },
+  {
+    "t": 1395.7,
+    "to_slide": 37,
+    "note": "36 to 37 now",
+    "kind": "exact"
+  }
+]
