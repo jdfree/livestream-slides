@@ -410,7 +410,13 @@ class Engine:
                     # happens to match the next verse's opening fired a verse early.
                     return self._move(t, nxt, "the next slide's opening was heard")
             for b in (c + 2, c + 3):
-                if b in self.content:
+                if b in self.content and not self.by[c].musical:
+                    # Same guard as the rule above: inside a hymn the aligned words
+                    # and the tune decide. Garbled singing that happened to match a
+                    # later verse's opening jumped the deck two slides forward and
+                    # those two were never shown at all. Genuine recovery, when the
+                    # deck really has fallen behind, still comes from the re-anchor
+                    # rule below, which needs two independent strong matches.
                     h = _lcs(r, self.words[b][:HEAD])
                     if h >= TIER_A and h > cur_hits:
                         return self._move(t, b, f"skipping ahead: slide {b}'s opening heard clearly")
