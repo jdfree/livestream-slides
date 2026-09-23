@@ -99,11 +99,15 @@ const label = (i) => `${i} · ${bySlide[i] ? bySlide[i].title : ''}`;
 
 document.title = $('title').textContent = `Slide operator · ${D.run}`;
 const S = D.score;
-$('tiles').innerHTML = [['Human marks met', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
-                        ['Never shown', S.never], ['Transitions', D.moves.length]]
+// With no marks every counter is zero, which reads as a clean sweep rather than
+// as "nobody has looked at this yet". Say the latter.
+$('tiles').innerHTML = (S.checked
+  ? [['Human marks met', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
+     ['Never shown', S.never], ['Transitions', D.moves.length]]
+  : [['Transitions', D.moves.length], ['Slides', D.slides.length], ['Not yet reviewed', '—']])
   .map(([k, v]) => `<div class="tile"><b>${v}</b>${k}</div>`).join('');
 $('movesCount').textContent = D.moves.length;
-$('marksCount').textContent = `${S.correct} of ${S.checked} met`;
+$('marksCount').textContent = S.checked ? `${S.correct} of ${S.checked} met` : 'not yet marked';
 $('foot').innerHTML = `Graded only against the human record — what a person watching the service said belonged on screen. `
   + `Audio re-encoded to 32&nbsp;kbps mono for the web.`;
 
@@ -170,6 +174,14 @@ for (const m of D.moves) {
     <div class="why">${esc(m.rule)}</div><div class="why">heard: “${esc(m.heard)}”</div>`;
   row.onclick = () => { seek(m.t - 8); audio.play(); };
   $('moves').appendChild(row);
+}
+if (!D.marks.length) {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.style.cursor = 'default';
+  row.innerHTML = '<div class="why">No one has marked this service yet, so it carries no score. '
+    + 'Marks are made in the local review harness and committed with the service.</div>';
+  $('marks').appendChild(row);
 }
 for (const mk of D.marks) {
   const row = document.createElement('div');
