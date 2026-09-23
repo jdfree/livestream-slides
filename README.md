@@ -12,10 +12,9 @@ audio, and the notes printed on the slide matched against the tune actually sung
 
 ### → **[See it follow a real service](https://jdfree.github.io/livestream-slides/)**
 
-Play the September 13 service and watch what it did: the timeline of music and
-voices, the slide it had on screen at every moment, what it believed that slide
-said, every transition with the reason it fired, and the human record it is graded
-against.
+Pick a service and watch what it did: the timeline of music and voices, the slide
+it had on screen at every moment, what it believed that slide said, every
+transition with the reason it fired, and the human record it is graded against.
 
 ## How it is graded
 
@@ -24,10 +23,14 @@ against.
 don't move yet". Those marks are the evaluation, committed as
 [`runs/2026-09-13/verdicts.json`](runs/2026-09-13/verdicts.json).
 
-It currently meets **26 of 45**. The system also builds a machine reference, but
-that is not the yardstick and never appears in the score: it derives its sung
-boundaries from the same alignment the engine reads, so agreeing with it proves
-nothing. [TESTING.md](TESTING.md) explains why in more detail.
+On September 13 it meets **26 of 45**. Later services are published as soon as they
+are built and scored once they are marked, so a service showing no score simply has
+not been reviewed by a person yet.
+
+The system also builds a machine reference, but that is not the yardstick and never
+appears in the score: it derives its sung boundaries from the same alignment the
+engine reads, so agreeing with it proves nothing. [TESTING.md](TESTING.md) explains
+why in more detail.
 
 The largest remaining fault is repeated text. Where a hymn prints an identical
 refrain on four slides, forced alignment cannot tell which repetition is being
@@ -99,8 +102,11 @@ path as rehearsed, not proven.
 ### Publishing the showcase
 
 ```bash
-python3 -m slide_operator.replay.site runs/2026-09-20 docs
+python3 -m slide_operator.replay.site runs/2026-09-20      # -> docs/2026-09-20/
 ```
+
+Each service gets its own directory under `docs/`, and the landing page at the root
+is rebuilt to list them.
 
 ## Layout
 
@@ -113,7 +119,7 @@ python3 -m slide_operator.replay.site runs/2026-09-20 docs
 | `slide_operator/live/` | live harness, operator HUD, intervention rules |
 | `slide_operator/deck_control/` | PowerPoint via AppleScript; an in-memory deck for testing |
 | `runs/<date>/` | one service. Only `verdicts.json` is committed — everything else is reproducible |
-| `docs/` | the published site |
+| `docs/` | the published site — a landing page plus one directory per service |
 
 ## Documents
 

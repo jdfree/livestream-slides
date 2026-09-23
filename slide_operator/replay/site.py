@@ -1,6 +1,7 @@
 """Build the static showcase site for GitHub Pages.
 
-    python -m slide_operator.replay.site runs/2026-09-13 docs
+    python -m slide_operator.replay.site runs/2026-09-13     # -> docs/2026-09-13/
+    python -m slide_operator.replay.site --index docs        # rebuild the landing page
 
 The same service the review harness shows, as a page that can be served from
 anywhere: the audio, the timeline, the slide the engine had on screen, what it
@@ -67,6 +68,60 @@ def build(run: Path, out: Path) -> Path:
     payload = json.dumps(data).replace("</", "<\\/")
     page = out / "index.html"
     page.write_text(PAGE.replace("__DATA__", payload))
+    # A summary beside the page, so the landing page lists services without
+    # parsing a 135 KB document each time.
+    (out / "meta.json").write_text(json.dumps({
+        "run": run.name, "slides": len(slides), "moves": len(moves),
+        "seconds": round(words[-1]["end"] if words else 0),
+        "correct": res["correct"], "checked": res["checked"]}, indent=2))
+    return page
+
+
+INDEX = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slide operator</title>
+<style>
+:root{--bg:#f6f6f3;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e0e0da;--accent:#3b6fd6;--ok:#2f9e5b}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--card:#20201e;--ink:#ecece8;--muted:#9a9a94;--line:#34342f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:40px 20px}
+h1{font-size:24px;margin:0 0 6px}
+p{color:var(--muted);max-width:60ch}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:14px 16px;margin:12px 0}
+a.card:hover{border-color:var(--accent)}
+a.card b{font-size:17px}
+a.card .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.score{float:right;font-variant-numeric:tabular-nums;color:var(--ok);font-weight:600}
+footer{color:var(--muted);font-size:13px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body><div class="wrap">
+<h1>Slide operator</h1>
+<p>An AI that listens to a church service and advances the slide deck, following the words and the
+music printed on the slides rather than transcribing what it hears. Each service below can be played
+back: what it had on screen at every moment, every decision and why, and how it scored against a
+person who watched the same service and marked what belonged on screen.</p>
+__CARDS__
+<footer>Graded only against the human record. Source:
+<a href="https://github.com/jdfree/livestream-slides">github.com/jdfree/livestream-slides</a></footer>
+</div></body></html>
+"""
+
+
+def index(out: Path) -> Path:
+    """Landing page listing every service built under `out`."""
+    cards = []
+    for meta in sorted(out.glob("*/meta.json"), reverse=True):
+        m = json.loads(meta.read_text())
+        mins = m["seconds"] // 60
+        score = (f'<span class="score">{m["correct"]}/{m["checked"]} marks met</span>'
+                 if m["checked"] else '<span class="score" style="color:var(--muted)">not yet marked</span>')
+        cards.append(
+            f'<a class="card" href="{meta.parent.name}/">{score}<b>{m["run"]}</b>'
+            f'<div class="meta">{mins} min · {m["slides"]} slides · {m["moves"]} transitions</div></a>')
+    page = out / "index.html"
+    page.write_text(INDEX.replace("__CARDS__", "\n".join(cards) or "<p>No services built yet.</p>"))
     (out / ".nojekyll").write_text("")
     return page
 
@@ -74,7 +129,7 @@ def build(run: Path, out: Path) -> Path:
 PAGE = r'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Slide operator · September 13</title>
+<title>Slide operator</title>
 <style>
 :root{--bg:#f6f6f3;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e0e0da;--ok:#2f9e5b;--bad:#d64545;--unk:#c9c9c2;--accent:#3b6fd6}
 @media (prefers-color-scheme:dark){:root{--bg:#161615;--card:#20201e;--ink:#ecece8;--muted:#9a9a94;--line:#34342f;--unk:#4a4a45}}
@@ -170,7 +225,7 @@ const moveT = D.moves.map((m) => m.t), wordT = D.words.map((w) => w[0]);
 const engineAt = (t) => { const i = bisect(moveT, t); return i < 0 ? D.first : D.moves[i].to; };
 const label = (i) => `${i} · ${bySlide[i] ? bySlide[i].title : ''}`;
 
-$('title').textContent = `Slide operator · ${D.run}`;
+document.title = $('title').textContent = `Slide operator · ${D.run}`;
 const S = D.score;
 $('tiles').innerHTML = [['Human marks met', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
                         ['Never shown', S.never], ['Transitions', D.moves.length]]
@@ -274,6 +329,10 @@ drawTimeline(); update();
 
 
 if __name__ == "__main__":
-    run = Path(sys.argv[1])
-    out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("docs")
-    print(build(run, out))
+    if sys.argv[1] == "--index":
+        print(index(Path(sys.argv[2])))
+    else:
+        run = Path(sys.argv[1])
+        out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("docs") / run.name
+        print(build(run, out))
+        print(index(out.parent))
