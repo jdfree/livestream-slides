@@ -130,11 +130,11 @@
     "text": "End of 16; transition to 17"
   },
   {
-    "t": 681.0,
+    "t": 677.5,
     "type": "transition",
     "from": 17,
     "to": 18,
-    "text": "engine's transition, accepted as correct"
+    "text": "engine's transition (earlier run), accepted as correct"
   },
   {
     "t": 683.5,
