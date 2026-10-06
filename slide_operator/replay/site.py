@@ -11,7 +11,7 @@ is graded against.
 It is read-only by construction — a static host has nothing to write back to — so
 the marking controls are gone. Everything else the harness does is here.
 
-The score is computed here, by the same verdicts.py the command line uses, so the
+The score is computed here, by training/score.py — the same scorer the command line uses — so the
 published numbers cannot drift from the real scorer.
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 from ..ingest import deck as deck_mod, melody
-from . import verdicts as verdicts_mod
+from ..training import marks as marks_mod, score as score_mod
 
 
 def build(run: Path, out: Path) -> Path:
@@ -37,9 +37,10 @@ def build(run: Path, out: Path) -> Path:
     voices = json.loads(vpath.read_text())["segments"] if vpath.exists() else []
 
     first = slides[0].index
-    res = verdicts_mod.score(run, moves, first)
-    marks = [{"t": r["want"], "to": r["to"], "note": r["note"],
-              "error": r["error"], "ok": r["ok"]} for r in res["rows"]]
+    marks = marks_mod.load(run)
+    res = score_mod.score(marks, moves)
+    notes = [{"t": m["t"], "text": m["text"], "slide": m.get("slide")}
+             for m in marks if m["type"] == "note"]
 
     # Slide images are copied by the caller or here if they are not already there.
     src = run / "review" / "slides"
@@ -58,7 +59,10 @@ def build(run: Path, out: Path) -> Path:
                     "src": "sheet-music OCR" if s.lyrics else "slide text"}
                    for s in slides],
         "moves": moves,
-        "marks": sorted(marks, key=lambda m: m["t"]),
+        "marks": res["rows"],
+        "notes": notes,
+        "operator": dec.get("operator", "engine"),
+        "foresight": dec.get("foresight", []),
         "score": {"correct": res["correct"], "checked": res["checked"],
                   "late": res["late"], "early": res["early"], "never": res["never"]},
         "music": [[r["t0"], r["t1"]] for r in music["regions"]],
@@ -131,7 +135,7 @@ PAGE = r'''<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Slide operator</title>
 <style>
-:root{--bg:#f6f6f3;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e0e0da;--ok:#2f9e5b;--bad:#d64545;--unk:#c9c9c2;--accent:#3b6fd6}
+:root{--bg:#f6f6f3;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e0e0da;--ok:#2f9e5b;--bad:#d64545;--warn:#c98a2f;--unk:#c9c9c2;--accent:#3b6fd6}
 @media (prefers-color-scheme:dark){:root{--bg:#161615;--card:#20201e;--ink:#ecece8;--muted:#9a9a94;--line:#34342f;--unk:#4a4a45}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
@@ -176,7 +180,7 @@ button.on{border-color:var(--accent);color:var(--accent)}
 .t{font-variant-numeric:tabular-nums;color:var(--muted)}
 .why{color:var(--muted);font-size:12px}
 .pill{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.pill.ok{color:var(--ok);border-color:var(--ok)} .pill.bad{color:var(--bad);border-color:var(--bad)}
+.pill.note{color:var(--warn);border-color:var(--warn)} .pill.ok{color:var(--ok);border-color:var(--ok)} .pill.bad{color:var(--bad);border-color:var(--bad)}
 footer{color:var(--muted);font-size:12px;margin:20px 0 8px}
 @media (max-width:860px){.stage,.cols{grid-template-columns:1fr}}
 </style></head>
@@ -230,13 +234,15 @@ const S = D.score;
 // With no marks every counter is zero, which reads as a clean sweep rather than
 // as "nobody has looked at this yet". Say the latter.
 $('tiles').innerHTML = (S.checked
-  ? [['Human marks met', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
-     ['Never shown', S.never], ['Transitions', D.moves.length]]
-  : [['Transitions', D.moves.length], ['Slides', D.slides.length], ['Not yet reviewed', '—']])
-  .map(([k, v]) => `<div class="tile"><b>${v}</b>${k}</div>`).join('');
+  ? [['Marked transitions on time', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
+     ['Never shown', S.never], ['Transitions made', D.moves.length]]
+  : [['Transitions made', D.moves.length], ['Slides', D.slides.length], ['Not yet reviewed', '—']])
+  .map(([k, v]) => `<div class="tile"><b>${v}</b>${k}</div>`).join('')
+  + (D.foresight.length ? `<div class="tile" title="${esc(D.foresight.join('; '))}"><b style="font-size:13px;color:var(--bad)">not live-valid</b>${esc(D.operator)} used foresight</div>` : '');
 $('movesCount').textContent = D.moves.length;
 $('marksCount').textContent = S.checked ? `${S.correct} of ${S.checked} met` : 'not yet marked';
-$('foot').innerHTML = `Graded only against the human record — what a person watching the service said belonged on screen. `
+$('foot').innerHTML = `Graded only against the transitions a person marked while listening to the service. `
+  + (D.foresight.length ? `This operator (${esc(D.operator)}) used inputs computed from the whole recording — ${esc(D.foresight.join('; '))} — so it could not do this live. ` : '')
   + `Audio re-encoded to 32&nbsp;kbps mono for the web.`;
 
 let duration = (D.words.length ? D.words[D.words.length - 1][0] : 0) + 60;
@@ -249,6 +255,7 @@ function drawTimeline() {
   for (const [a, b, role] of D.voices) h += r(x(a), 24, Math.max(1, x(b) - x(a)), 6, VC[role] || 'var(--unk)');
   for (const m of D.moves) h += r(x(m.t), 33, 1.4, 11, 'var(--ink)');
   for (const mk of D.marks) h += r(x(mk.t), 47, 2, 14, mk.ok ? 'var(--ok)' : 'var(--bad)');
+  for (const n of D.notes) h += r(x(n.t), 47, 1.4, 6, 'var(--warn)');
   svg.innerHTML = h + '<rect id="playhead" x="0" y="0" width="2.5" height="64" style="fill:var(--accent)"/>';
 }
 svg.addEventListener('click', (e) => { const b = svg.getBoundingClientRect(); seek(((e.clientX - b.left) / b.width) * duration); });
@@ -303,7 +310,7 @@ for (const m of D.moves) {
   row.onclick = () => { seek(m.t - 8); audio.play(); };
   $('moves').appendChild(row);
 }
-if (!D.marks.length) {
+if (!D.marks.length && !D.notes.length) {
   const row = document.createElement('div');
   row.className = 'row';
   row.style.cursor = 'default';
@@ -311,15 +318,22 @@ if (!D.marks.length) {
     + 'Marks are made in the local review harness and committed with the service.</div>';
   $('marks').appendChild(row);
 }
-for (const mk of D.marks) {
+const record = [...D.marks.map((m) => ({...m, kind: 'transition'})), ...D.notes.map((n) => ({...n, kind: 'note'}))]
+  .sort((a, b) => a.t - b.t);
+for (const mk of record) {
   const row = document.createElement('div');
-  row.className = 'row ' + (mk.ok ? 'ok' : 'bad');
-  const err = mk.error === null ? 'never shown'
-    : mk.error === 0 ? 'on screen'
-    : `${mk.error > 0 ? '+' : ''}${mk.error.toFixed(1)}s ${mk.error > 0 ? 'late' : 'early'}`;
-  row.innerHTML = `<div><span class="t">${fmt(mk.t)}</span> &nbsp;show <b>${esc(label(mk.to))}</b>
-      <span class="pill ${mk.ok ? 'ok' : 'bad'}">${esc(err)}</span></div>
-    <div class="why">“${esc(mk.note)}”</div>`;
+  if (mk.kind === 'note') {
+    row.className = 'row';
+    row.innerHTML = `<div><span class="t">${fmt(mk.t)}</span> &nbsp;<span class="pill note">note</span></div><div class="why">${esc(mk.text)}</div>`;
+  } else {
+    row.className = 'row ' + (mk.ok ? 'ok' : 'bad');
+    const err = mk.error === null ? 'never shown'
+      : Math.abs(mk.error) <= 2 ? 'on time'
+      : `${mk.error > 0 ? '+' : ''}${mk.error.toFixed(1)}s ${mk.error > 0 ? 'late' : 'early'}`;
+    row.innerHTML = `<div><span class="t">${fmt(mk.t)}</span> &nbsp;${mk.from} → <b>${esc(label(mk.to))}</b>
+        <span class="pill ${mk.ok ? 'ok' : 'bad'}">${esc(err)}</span></div>`
+      + (mk.text ? `<div class="why">“${esc(mk.text)}”</div>` : '');
+  }
   row.onclick = () => { seek(mk.t - 6); audio.play(); };
   $('marks').appendChild(row);
 }

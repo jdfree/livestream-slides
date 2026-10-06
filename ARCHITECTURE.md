@@ -23,8 +23,8 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
             ├─► audio/music.py    ─► regions, tune     │   replay/oracle.py ─► sung spans
             ├─► audio/lyrics_align.py ─► lyric onsets  │   (feeds the aligner)│
             └─► audio/note_align.py   ─► note onsets   ┘                     ▼
-                                          verdicts.json ─► replay/review.py ─► review page
-                                        (the human record)
+                                             marks.json ─► replay/review.py ─► marking harness
+                                     (the person's labels)
 ```
 
 ### Reading the inputs
@@ -51,11 +51,21 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
 
 | module | what it does |
 |---|---|
-| `replay/run.py` | **The engine.** Walks the service forward in time, sees only what has happened so far, and decides when to advance. |
+| `replay/run.py` | **The engine.** Walks the service forward in time and decides when to advance. Runs as an operator (below). |
 | `replay/oracle.py` | Builds sung spans non-causally so the aligner knows which stretch of audio holds which hymn. Its `reference.json` is machinery, **not** a yardstick — see TESTING.md. |
-| `replay/verdicts.py` | **The evaluation.** Scores the engine against the human record. |
-| `replay/review.py` | Builds the review page: audio, timeline, the slide on screen, the OCR text, every decision with its reason, and the marks. |
-| `replay/serve.py` | Serves `runs/` and accepts the marks the review page writes back. |
+| `replay/review.py` | The marking harness: play a service, press **Mark f → g** at each transition, add notes. The person's marks drive the display; the last operator run is shown alongside. |
+| `replay/serve.py` | The local server: the services list, the intake page, the harness, and the one writable file per bundle, `marks.json`. |
+
+### Training
+
+| module | what it does |
+|---|---|
+| `training/marks.py` | The labels: `{t, type: "transition", from, to}` and `{t, type: "note", text}` in one file per service, written in one canonical form so its git history shows only real edits. |
+| `training/operator.py` | What an operator may know, and when. `prepare` receives everything that can be read beforehand; `step` receives only what has been heard by time *t*. |
+| `training/runner.py` | Owns the clock and replays a bundle to an operator, strictly in time order. |
+| `training/score.py` | **The evaluation.** An operator's transitions against the person's. |
+| `training/operators/` | The registered operators. The engine is one, and declares its foresight. |
+| `training/ingest.py`, `training/web.py` | Turn a YouTube recording, a deck and a bulletin into a new bundle, from the intake page or the command line. |
 
 ## What the engine actually does
 
@@ -123,7 +133,10 @@ turns red and counts down the hold.
 3. **Sung precision depends on analysis prepared beforehand.** Notes, aligned
    lyrics and the music map are computed from a recording. Live, they must be built
    incrementally; until then the live engine leans on its word rules.
-4. **Repeated text defeats alignment.** Where a hymn prints an identical refrain on
+4. **The engine uses foresight.** Its music map and lyric/note alignment are
+   computed over the whole recording, so its scores overstate what it could do
+   live. The operator interface makes that explicit and stamps every result.
+5. **Repeated text defeats alignment.** Where a hymn prints an identical refrain on
    four slides, forced alignment cannot say which repetition is being sung, and
    where it loses a hymn's opening stanza every later verse inherits the error.
    This is the largest known source of remaining mistakes.

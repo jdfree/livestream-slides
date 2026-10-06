@@ -10,14 +10,11 @@ interventions (8), LLM adjudication. The score says what words alone buy.
 """
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
-from ..audio import music as music_mod
-from ..ingest import deck as deck_mod, melody
+from ..ingest import deck as deck_mod
 from ..ingest.text import content_words, syllables
-from . import verdicts
 from .oracle import MIN_WORDS, _duplicates, listen_text
 
 LATENCY = 1.5            # simulated streaming commit delay (s)
@@ -440,35 +437,14 @@ def _mmss(t):
     return f"{int(t // 60):2d}:{int(t % 60):02d}"
 
 
-def main(run: Path, latency: float, no_music: bool = False) -> None:
-    slides = deck_mod.load(run / "deck.pptx")
-    melody.attach(slides, run / "deck.pptx", run / "lyrics.json")
-    words = [json.loads(l) for l in open(run / "words.jsonl")]
-    aligned = {}
-    if not no_music:
-        # note_align overlays align: notes win where they are trustworthy, lyrics
-        # remain for sung slides the notes cannot separate.
-        for name in ("align.json", "note_align.json"):
-            path = run / name
-            if path.exists():
-                aligned.update({int(k): v for k, v in json.loads(path.read_text()).items()})
-    eng = replay(slides, words, None if no_music else music_mod.analyze(run), latency, aligned)
-    (run / "decisions.json").write_text(json.dumps({"moves": eng.moves}, indent=2))
-
-    by = {s.index: s for s in slides}
-    print("=== console narration ===")
-    for m in eng.moves:
-        print(f"{_mmss(m['t'])}  {m['from']:>2} -> {m['to']:<2} {by[m['to']].title[:28]:<28} {m['rule']}")
-        print(f"        heard: \"{m['heard']}\"")
-    res = verdicts.score(run, eng.moves, slides[0].index)
-    print(f"\nagainst the human record: {res['correct']}/{res['checked']}"
-          f"   late {res['late']}  early {res['early']}  never shown {res['never']}")
-    for r in sorted((r for r in res["rows"] if not r["ok"]), key=lambda r: r["want"]):
-        err = "never shown" if r["error"] is None else f"{r['error']:+.1f}s"
-        print(f"  MISS {_mmss(r['want'])} -> {r['to']:>2} {err:>12}   {r['note'][:52]}")
+def main(run: Path, latency: float = LATENCY) -> None:
+    """`python -m slide_operator.replay.run runs/<date>` still works: it is the engine
+    replayed through the training runner, which owns the clock (training/runner.py)."""
+    from ..training import runner
+    runner.main(run, "engine", latency)
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
     lat = float(args[args.index("--latency") + 1]) if "--latency" in args else LATENCY
-    main(Path(args[0]), lat, "--no-music" in args)
+    main(Path(args[0]), lat)

@@ -15,35 +15,37 @@ markedly more accurate than a streaming recogniser that has only heard up to
 decisions land roughly 2–4 s later than the same decisions made over a finished
 recording, which is the gap streaming latency opens.
 
-## A run directory
+## A bundle
 
-Everything about one service lives in `runs/<date>/`:
+Everything about one service lives in `runs/<date>/`. The first eight files are
+the bundle and are committed; the rest is derived from them and rebuilt on demand.
 
 | file | what it is |
 |---|---|
-| `audio.wav`, `audio.webm` | the recording |
-| `deck.pptx`, `folder.pdf` | the two documents |
-| `words.jsonl` | transcription, one timed word per line |
-| `music.json` | music regions, tune period, stanza grid, where singing starts |
+| `audio.webm` | the recording, 32 kbps mono |
+| `deck.pptx`, `folder.pdf` | the slides and the bulletin |
+| `bundle.json` | where they came from, and the service's title |
+| `marks.json` | **the person's transition marks and notes — the labels** |
+| `words.jsonl` | transcription, one timed word per line — frozen, because Whisper never transcribes the same audio identically twice |
 | `lyrics.json`, `notes.json` | OCR of the sheet-music strips; OMR of the same staves |
+| `audio.original.*`, `audio.wav` | the download, and 16 kHz mono for analysis |
+| `music.json` | music regions, tune period, stanza grid, where singing starts |
 | `align.json`, `note_align.json` | where each slide's printed words and notes were heard |
 | `service_map.json` | folder↔deck correlation, covers, un-slided elements |
-| `decisions.json` | what the engine did, and why |
-| `verdicts.json` | **the human record — the evaluation** |
-| `review/` | the review page and rendered slide images |
+| `decisions.json` | what the operator did, why, and any foresight it used |
+| `review/` | the marking harness and rendered slide images |
 
 Only the transcription, the OCR and the OMR are slow. Everything iterated on is
-fast: the engine replays a whole service in about a second.
+fast: an operator replays a whole service in about a second.
 
 ## Running it
 
 ```bash
-python3 -m slide_operator prepare runs/2026-09-13      # folder <-> deck correlation
-python3 -m slide_operator.replay.oracle runs/2026-09-13 # music, alignment, notes
-python3 -m slide_operator.replay.run    runs/2026-09-13 # the engine -> decisions.json
-python3 -m slide_operator.replay.review runs/2026-09-13 # build the review page
-python3 -m slide_operator.replay.verdicts runs/2026-09-13  # score against the marks
-python3 -m slide_operator.replay.serve 8791             # serve runs/ for review
+python3 -m slide_operator.training.ingest --youtube URL --slides PATH --bulletin PATH
+python3 -m slide_operator.training.runner runs/2026-09-20   # replay the engine
+python3 -m slide_operator.training.score  runs/2026-09-20   # score against the marks
+python3 -m slide_operator.replay.review   runs/2026-09-20   # rebuild the harness page
+python3 -m slide_operator.replay.serve    8791              # services, intake, harness
 ```
 
 Deleting a cached file regenerates it. Deleting `music.json` invalidates the
@@ -52,18 +54,21 @@ alignment that was built inside its regions, so delete `align.json`,
 
 ## What the score means
 
-**The evaluation is `verdicts.json` — what a person watching the service said
-belonged on screen.** Each mark is one unambiguous fact: at time *t*, slide *n*.
-That single form covers both "change here" and "not yet", and both are graded the
-same way: find the window during which the engine actually displayed that slide
-and measure how far *t* falls outside it.
+**The labels are the transitions in `marks.json`**: at time *t* the deck should
+leave slide *f* and show slide *g*. For each, the scorer finds when the operator put
+*g* on screen, nearest to *t*. Within two seconds either way is a hit; otherwise it
+was late or early by that much, or *g* was never shown. Notes are not scored.
 
-`reference.json` is **not** the measure. It is built non-causally to give the
-aligner sung spans to work in, and it is wrong often enough that scoring against
-it misleads: it smears identical refrains across a hymn, has listed slides out of
-order, and derives its sung boundaries from the same alignment the engine reads —
-so agreement with it is partly circular. It stays because the aligner needs it,
-not because it judges anything.
+This is stricter than the marks it replaced, which said only "slide *g* belongs on
+screen at *t*" and so credited an operator that reached *g* early and was still on
+it. Arriving early is an error, and now counts as one.
+
+An operator that declared foresight gets a score stamped **not live-valid**. The
+engine does: its music map and lyric/note alignment are computed over the whole
+recording.
+
+`reference.json` is **not** a measure. It is built non-causally to give the aligner
+sung spans to work in, and stays only because the aligner needs it.
 
 ## What replay cannot test
 

@@ -2,16 +2,27 @@ __pycache__/
 *.pyc
 .DS_Store
 
-# Run artifacts are large and reproducible: service audio (a 132 MB wav and a
-# 53 MB webm per service), the decks, the rendered slide images, and every
-# machine-derived cache — transcript, music regions, alignment, OMR, reference,
-# decisions, review page.
+# A service is a bundle in runs/<date>/. Committed: the recording (32 kbps mono,
+# the same bytes the site serves, so git stores it once), the deck, the bulletin,
+# a manifest, the person's marks — and the three inputs every operator reads that
+# cannot be regenerated faithfully: the transcript (Whisper gives a different one
+# each run: 6159 words in September, 6238 from identical audio a month later), and
+# the OCR'd lyrics and recognised notes (which need macOS Vision and homr).
+# Everything else is derived from those and rebuilt on demand.
 runs/**
-
-# Except the human record. It is the evaluation and the one thing here that
-# cannot be regenerated from the source material, so it travels with the repo.
-# Kept in place rather than copied to a fixtures directory: this is the same file
-# the review page writes, so the fixture cannot drift from what was marked.
 !runs/
 !runs/*/
-!runs/*/verdicts.json
+!runs/*/audio.webm
+!runs/*/deck.pptx
+!runs/*/folder.pdf
+!runs/*/folder.docx
+!runs/*/bundle.json
+!runs/*/marks.json
+!runs/*/words.jsonl
+!runs/*/lyrics.json
+!runs/*/notes.json
+
+# Set aside, never marked: not training bundles. July 19 was the earliest test
+# service; September 6 was abandoned for poor audio.
+runs/2026-07-19/
+runs/2026-09-06/

@@ -1,0 +1,310 @@
+[
+  {
+    "t": 544.0,
+    "type": "transition",
+    "from": 5,
+    "to": 6,
+    "text": "opening hymn: last singing is 9:04, move then"
+  },
+  {
+    "t": 623.0,
+    "type": "transition",
+    "from": 8,
+    "to": 9,
+    "text": "canticle: first transition was good"
+  },
+  {
+    "t": 632.3,
+    "type": "transition",
+    "from": 9,
+    "to": 10,
+    "text": "Transition a bit sooner"
+  },
+  {
+    "t": 638.1,
+    "type": "transition",
+    "from": 10,
+    "to": 11,
+    "text": "transition sooner"
+  },
+  {
+    "t": 650.1,
+    "type": "transition",
+    "from": 12,
+    "to": 13,
+    "text": "transition sooner"
+  },
+  {
+    "t": 664.5,
+    "type": "transition",
+    "from": 14,
+    "to": 15,
+    "text": "transition when music ends"
+  },
+  {
+    "t": 695.2,
+    "type": "transition",
+    "from": 15,
+    "to": 16,
+    "text": "transition after words end"
+  },
+  {
+    "t": 701.5,
+    "type": "transition",
+    "from": 16,
+    "to": 17,
+    "text": "music ended, so transition to text slide that follows"
+  },
+  {
+    "t": 779.5,
+    "type": "transition",
+    "from": 18,
+    "to": 19,
+    "text": "Reading is ended, so transition to next slide"
+  },
+  {
+    "t": 838.0,
+    "type": "transition",
+    "from": 19,
+    "to": 20,
+    "text": "psalm: advance here, not 13:20 (refrain repeats)"
+  },
+  {
+    "t": 919.0,
+    "type": "transition",
+    "from": 20,
+    "to": 21,
+    "text": "psalm: Gloria Patri begins"
+  },
+  {
+    "t": 1217.4,
+    "type": "transition",
+    "from": 23,
+    "to": 24,
+    "text": "Music started; time to transition to next hymn"
+  },
+  {
+    "t": 1277.4,
+    "type": "transition",
+    "from": 24,
+    "to": 25,
+    "text": "Verse 1 ended; switch to verse 2"
+  },
+  {
+    "t": 1309.0,
+    "type": "transition",
+    "from": 25,
+    "to": 26,
+    "text": "Verse ended; switch to verse 3."
+  },
+  {
+    "t": 1339.0,
+    "type": "transition",
+    "from": 26,
+    "to": 27,
+    "text": "hymn 319 verse 3->4 was good"
+  },
+  {
+    "t": 1340.5,
+    "type": "note",
+    "slide": 27,
+    "text": "[a second 26->27 mark] Verse ended; switch to verse 4"
+  },
+  {
+    "t": 1395.0,
+    "type": "transition",
+    "from": 29,
+    "to": 30,
+    "text": "23:15 music started; should have left the spoken slide"
+  },
+  {
+    "t": 1402.6,
+    "type": "transition",
+    "from": 30,
+    "to": 31,
+    "text": "Words ended; move to next slide"
+  },
+  {
+    "t": 1411.7,
+    "type": "transition",
+    "from": 32,
+    "to": 33,
+    "text": "Words ended; move to next music slide"
+  },
+  {
+    "t": 1419.7,
+    "type": "note",
+    "slide": 33,
+    "text": "[a second 32->33 mark] Words ended; move to next slide"
+  },
+  {
+    "t": 1430.1,
+    "type": "transition",
+    "from": 33,
+    "to": 34,
+    "text": "Music ended; switch to reading after music."
+  },
+  {
+    "t": 1573.0,
+    "type": "transition",
+    "from": 36,
+    "to": 37,
+    "text": "Text ended; move to next slide"
+  },
+  {
+    "t": 1575.8,
+    "type": "transition",
+    "from": 37,
+    "to": 38,
+    "text": "Music started; move to music slide"
+  },
+  {
+    "t": 2417.9,
+    "type": "transition",
+    "from": 39,
+    "to": 40,
+    "text": "Music is starting after Amen followed by silence; sermon is clearly over and hymn slide should be up"
+  },
+  {
+    "t": 2507.8,
+    "type": "note",
+    "slide": 42,
+    "text": "Let congregation start singing \"stone\" before moving. on."
+  },
+  {
+    "t": 2509.2,
+    "type": "transition",
+    "from": 42,
+    "to": 43,
+    "text": "Transition by now"
+  },
+  {
+    "t": 2547.0,
+    "type": "transition",
+    "from": 44,
+    "to": 45,
+    "text": "\"Lamb\" is done; transition to next words"
+  },
+  {
+    "t": 2565.2,
+    "type": "transition",
+    "from": 45,
+    "to": 46,
+    "text": "\"Snow\" is done; transition to verse"
+  },
+  {
+    "t": 2584.5,
+    "type": "transition",
+    "from": 46,
+    "to": 47,
+    "text": "\"repeat\" is done; transition to final refrain of song."
+  },
+  {
+    "t": 2603.8,
+    "type": "transition",
+    "from": 47,
+    "to": 48,
+    "text": "Music ends, so transition to next slide"
+  },
+  {
+    "t": 2642.2,
+    "type": "note",
+    "slide": 48,
+    "text": "\"God the Father Almighty\" occurs twice on this slide; should not transition until entire slide is read."
+  },
+  {
+    "t": 2662.1,
+    "type": "transition",
+    "from": 49,
+    "to": 50,
+    "text": "Recitation has ended; offering is starting. Show offering slide."
+  },
+  {
+    "t": 2873.0,
+    "type": "transition",
+    "from": 53,
+    "to": 54,
+    "text": "Music starts, so transition to next music."
+  },
+  {
+    "t": 2901.7,
+    "type": "transition",
+    "from": 54,
+    "to": 55,
+    "text": "\"sins, as\" has completed, so go to next slide."
+  },
+  {
+    "t": 2959.6,
+    "type": "transition",
+    "from": 57,
+    "to": 58,
+    "text": "Speech ends and music starts, so next slide with music needs to come up."
+  },
+  {
+    "t": 2979.0,
+    "type": "transition",
+    "from": 59,
+    "to": 60,
+    "text": "Recitation ends and music is next, so quick transition."
+  },
+  {
+    "t": 2989.9,
+    "type": "transition",
+    "from": 60,
+    "to": 61,
+    "text": "\"Amen\" is done; transition to next song, which is a separate song."
+  },
+  {
+    "t": 3046.3,
+    "type": "note",
+    "slide": 61,
+    "text": "Verse has not ended yet"
+  },
+  {
+    "t": 3059.3,
+    "type": "transition",
+    "from": 61,
+    "to": 62,
+    "text": "\"King\" is sung; now we move to verse 2"
+  },
+  {
+    "t": 3076.4,
+    "type": "note",
+    "slide": 62,
+    "text": "Verse 2 is barely half done; don't transition early."
+  },
+  {
+    "t": 3092.2,
+    "type": "transition",
+    "from": 62,
+    "to": 63,
+    "text": "Verse 2 has finally ended and verse 3 starts"
+  },
+  {
+    "t": 3113.5,
+    "type": "note",
+    "slide": 63,
+    "text": "Verse 3 is just getting to Allelulias; still significant time before verse 4."
+  },
+  {
+    "t": 3123.6,
+    "type": "transition",
+    "from": 63,
+    "to": 64,
+    "text": "Verse 3 ends here; verse 4 starting"
+  },
+  {
+    "t": 3172.4,
+    "type": "transition",
+    "from": 64,
+    "to": 65,
+    "text": "Music has ended, so move past music slide"
+  },
+  {
+    "t": 3176.7,
+    "type": "transition",
+    "from": 65,
+    "to": 66,
+    "text": "After brief acknowledgements slide, move to blank final slide"
+  }
+]
