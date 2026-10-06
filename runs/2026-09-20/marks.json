@@ -21,6 +21,20 @@
     "text": "transition during last word of verse"
   },
   {
+    "t": 356.5,
+    "type": "transition",
+    "from": 4,
+    "to": 5,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
+    "t": 389.0,
+    "type": "transition",
+    "from": 5,
+    "to": 6,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
     "t": 397.4,
     "type": "transition",
     "from": 6,
@@ -95,6 +109,13 @@
     "text": "Somehow skipped to 17 barely after 15 started. Should stay on 15."
   },
   {
+    "t": 613.5,
+    "type": "transition",
+    "from": 14,
+    "to": 15,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
     "t": 640.7,
     "type": "transition",
     "from": 15,
@@ -109,6 +130,13 @@
     "text": "End of 16; transition to 17"
   },
   {
+    "t": 681.0,
+    "type": "transition",
+    "from": 17,
+    "to": 18,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
     "t": 683.5,
     "type": "transition",
     "from": 18,
@@ -121,6 +149,13 @@
     "from": 19,
     "to": 20,
     "text": "Amen on 19 means transition"
+  },
+  {
+    "t": 755.7,
+    "type": "transition",
+    "from": 20,
+    "to": 21,
+    "text": "engine's transition, accepted as correct"
   },
   {
     "t": 796.0,
@@ -185,6 +220,13 @@
     "text": "28 is done; go to 29"
   },
   {
+    "t": 974.5,
+    "type": "transition",
+    "from": 29,
+    "to": 30,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
     "t": 994.0,
     "type": "transition",
     "from": 30,
@@ -192,11 +234,32 @@
     "text": "transition to 31 when music ends"
   },
   {
+    "t": 1042.8,
+    "type": "transition",
+    "from": 31,
+    "to": 32,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
+    "t": 1077.6,
+    "type": "transition",
+    "from": 32,
+    "to": 33,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
     "t": 1110.6,
     "type": "transition",
     "from": 33,
     "to": 34,
     "text": "Transition 33 to 34 now; it was a bit early"
+  },
+  {
+    "t": 1295.5,
+    "type": "transition",
+    "from": 34,
+    "to": 35,
+    "text": "engine's transition, accepted as correct"
   },
   {
     "t": 1357.0,
@@ -211,6 +274,20 @@
     "from": 36,
     "to": 37,
     "text": "36 to 37 now"
+  },
+  {
+    "t": 1435.5,
+    "type": "transition",
+    "from": 37,
+    "to": 38,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
+    "t": 2492.0,
+    "type": "transition",
+    "from": 38,
+    "to": 39,
+    "text": "engine's transition, accepted as correct"
   },
   {
     "t": 2496.7,
@@ -231,6 +308,27 @@
     "from": 40,
     "to": 41,
     "text": "Transition from 40 to 41 now"
+  },
+  {
+    "t": 2612.6,
+    "type": "transition",
+    "from": 41,
+    "to": 42,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
+    "t": 2644.7,
+    "type": "transition",
+    "from": 42,
+    "to": 43,
+    "text": "engine's transition, accepted as correct"
+  },
+  {
+    "t": 2671.2,
+    "type": "transition",
+    "from": 43,
+    "to": 44,
+    "text": "engine's transition, accepted as correct"
   },
   {
     "t": 2678.8,
@@ -341,6 +439,13 @@
     "from": 57,
     "to": 58,
     "text": "57 to 58"
+  },
+  {
+    "t": 3018.8,
+    "type": "transition",
+    "from": 58,
+    "to": 59,
+    "text": "engine's transition, accepted as correct"
   },
   {
     "t": 3057.0,
