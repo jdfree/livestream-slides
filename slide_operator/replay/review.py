@@ -174,7 +174,7 @@ If the wrong slide is showing, pick the right pair (or click a nearby slide). No
 <kbd>space</kbd> play · <kbd>M</kbd> mark · <kbd>[</kbd> <kbd>]</kbd> change pair · <kbd>Esc</kbd> follow again · <kbd>N</kbd> note · <kbd>←</kbd> <kbd>→</kbd> 5 s</p>
 <div class="controls">
   <audio id="audio" controls preload="auto"></audio>
-  <button data-rate="1" class="on">1×</button><button data-rate="1.5">1.5×</button><button data-rate="2">2×</button>
+  <button data-rate="1" class="on">1×</button><button data-rate="2">2×</button><button data-rate="4">4×</button>
 </div>
 <svg id="timeline" viewBox="0 0 1000 64" preserveAspectRatio="none"></svg>
 <div class="legend"><i style="background:var(--accent)"></i>music<i style="background:#6a8fd8"></i>liturgist<i style="background:#d8a06a"></i>preacher<i style="background:#7bbf8a"></i>congregation · upper ticks: <span style="color:var(--ok)">your transitions</span>, <span style="color:var(--warn)">notes</span> · lower ticks: <span id="opLegend">operator</span> transitions</div>
