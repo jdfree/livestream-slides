@@ -1,6 +1,6 @@
 """Score an operator against the person's transition marks — the only measure.
 
-    python -m slide_operator.training.score runs/<date> [--operator engine]
+    python -m slide_operator.training.score runs/<key> [--operator engine]
 
 For every transition the person marked (from f to g at time t), find when the
 operator put slide g on screen, nearest to t. Within TOLERANCE either way it is a

@@ -12,17 +12,20 @@ __pycache__/
 runs/**
 !runs/
 !runs/*/
+# Uploads are built in runs/.<key>.new and swapped in; never commit those.
+runs/.*
 !runs/*/audio.webm
 !runs/*/deck.pptx
 !runs/*/folder.pdf
 !runs/*/folder.docx
 !runs/*/bundle.json
 !runs/*/marks.json
+!runs/*/feedback.json
 !runs/*/words.jsonl
 !runs/*/lyrics.json
 !runs/*/notes.json
 
 # Set aside, never marked: not training bundles. July 19 was the earliest test
 # service; September 6 was abandoned for poor audio.
-runs/2026-07-19/
-runs/2026-09-06/
+runs/2026-07-19-st-peter-fort-collins/
+runs/2026-09-06-st-peter-fort-collins/

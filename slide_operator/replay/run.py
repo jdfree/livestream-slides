@@ -1,6 +1,6 @@
 """Replay the operating policy against a recorded service and score it.
 
-    python -m slide_operator.replay.run runs/<date> [--latency 1.5]
+    python -m slide_operator.replay.run runs/<key> [--latency 1.5]
 
 A deterministic baseline, not the whole policy. Implemented: word evidence, the
 dwell/cooldown/rate guards (6), cover eager-in and patient-out, the handoff rule,
@@ -438,7 +438,7 @@ def _mmss(t):
 
 
 def main(run: Path, latency: float = LATENCY) -> None:
-    """`python -m slide_operator.replay.run runs/<date>` still works: it is the engine
+    """`python -m slide_operator.replay.run runs/<key>` still works: it is the engine
     replayed through the training runner, which owns the clock (training/runner.py)."""
     from ..training import runner
     runner.main(run, "engine", latency)

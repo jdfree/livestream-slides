@@ -1,6 +1,6 @@
 """The training labels: what a person said should happen, and when.
 
-One file per service, runs/<date>/marks.json, holding two kinds of record:
+One file per service, runs/<key>/marks.json, holding two kinds of record:
 
     {"t": 488.4, "type": "transition", "from": 8, "to": 9}
     {"t": 503.0, "type": "note", "text": "refrain repeats here", "slide": 9}
@@ -13,8 +13,8 @@ original words — which nothing scores.
 A note is free text pinned to a moment and to the slide on screen then. Notes are
 for people, and for operators that read context; nothing scores them.
 
-    python -m slide_operator.training.marks convert runs/<date>   # from verdicts.json
-    python -m slide_operator.training.marks check   runs/<date>
+    python -m slide_operator.training.marks convert runs/<key>   # from verdicts.json
+    python -m slide_operator.training.marks check   runs/<key>
 """
 from __future__ import annotations
 
@@ -178,7 +178,7 @@ def _main(argv: list[str]) -> None:
         bad = problems(json.loads((run / "marks.json").read_text()))
         print("\n".join(bad) if bad else "ok")
     else:
-        raise SystemExit("usage: python -m slide_operator.training.marks {convert|check} runs/<date>")
+        raise SystemExit("usage: python -m slide_operator.training.marks {convert|check} runs/<key>")
 
 
 if __name__ == "__main__":

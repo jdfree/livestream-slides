@@ -22,7 +22,7 @@ transition with the reason it fired, and the transitions a person marked.
 in the marking harness and presses **Mark** at every moment the deck should change —
 "slide 8 → 9, now" — adding notes wherever something deserves a comment. Those
 transition marks are the training labels and the only measure, committed with the
-service in [`runs/<date>/marks.json`](runs/2026-09-20/marks.json).
+service in [`runs/<key>/marks.json`](runs/2026-09-20-st-peter-fort-collins/marks.json).
 
 A score is how many of the person's transitions an operator made within two
 seconds — late, early, or never shown otherwise. The site lists each service with
@@ -38,19 +38,26 @@ next piece of work.
 
 Run the local server (it starts at login if you installed the launch agent) and
 open **http://localhost:8791/intake/**. Give it the YouTube recording, the slides,
-and the bulletin — local paths like `~/Downloads/092026 PowerPoint.pptx` work, as
-do links that download the file directly. It builds the bundle in the background,
-which takes several minutes (transcription and reading the sheet music), and opens
-the marking harness when done.
+the bulletin and the location (it starts as *St Peter, Fort Collins*) — local paths
+like `~/Downloads/092026 PowerPoint.pptx` work, as do links that download the file
+directly. It builds the bundle in the background, which takes several minutes
+(transcription and reading the sheet music), and opens the marking harness when done.
+
+A service is its date and location: `runs/2026-09-20-st-peter-fort-collins/`.
+Uploading one that already exists — a corrected deck, a better recording — replaces
+its media and everything derived from them, and keeps its marks and feedback byte
+for byte. The new bundle is built beside the old one and swapped in only when it is
+complete, so a failed upload changes nothing.
 
 From the command line, the same thing:
 
 ```bash
 python3 -m slide_operator.training.ingest --youtube '<recording URL>' \
-    --slides ~/Downloads/deck.pptx --bulletin ~/Downloads/bulletin.pdf
+    --slides ~/Downloads/deck.pptx --bulletin ~/Downloads/bulletin.pdf \
+    --location 'St Peter, Fort Collins'     # the default
 ```
 
-A bundle is `runs/<date>/`: the recording (`audio.webm`), the deck, the bulletin
+A bundle is `runs/<key>/`: the recording (`audio.webm`), the deck, the bulletin
 (`folder.pdf` or `.docx`), a manifest (`bundle.json`), the marks, and the three
 inputs every operator reads — the transcript, the OCR'd lyrics and the recognised
 notes. Those are committed, the last three because they cannot be rebuilt
@@ -67,14 +74,26 @@ button moves on to **9 → 10**. The dropdown beside it follows your marks while
 audio plays; if the wrong slide is showing, or a slide should be skipped, choose the
 pair there or click a slide under *Next & nearby*. <kbd>Esc</kbd> returns to
 following. Notes go in the box beside it at any moment. Everything saves to
-`marks.json` as you go.
+`marks.json` as you go. The page reads the file each time it opens, and a save from
+a tab opened before a newer save is refused rather than allowed to overwrite it.
 
 The operator last replayed on the service appears as a separate track — its
 transitions on the timeline and in a list, each timed against yours.
 
 ```bash
-python3 -m slide_operator.training.score runs/2026-09-20     # score it from the shell
+python3 -m slide_operator.training.score runs/2026-09-20-st-peter-fort-collins     # score it from the shell
 ```
+
+## Watching an operator
+
+Each service also has a **Demo** page: an operator's run played back — the slide it
+had on screen at every moment, every decision and why — against your marks, each
+shown on time, late, early or never shown, and with the status line saying where
+your marks disagree with what is on screen. Choose the operator there, **Run again**
+to replay it after changing it, and add **feedback** pinned to a moment (<kbd>F</kbd>).
+Feedback goes to `feedback.json`, separate from the marks: it is about what one
+operator did, not about what should happen, and it records which slide that
+operator was showing.
 
 ## Writing an operator
 
@@ -97,20 +116,20 @@ runner then supplies them through that separate argument and stamps the result a
 not live-valid. Register it in `training/operators/` and replay it with
 
 ```bash
-python3 -m slide_operator.training.runner runs/2026-09-20 --operator <name>
+python3 -m slide_operator.training.runner runs/2026-09-20-st-peter-fort-collins --operator <name>
 ```
 
 ### Driving a real deck
 
 ```bash
 # rehearse against the recording at 30x, deck in memory
-python3 -m slide_operator.live --run runs/2026-09-20 --speed 30 --until 720
+python3 -m slide_operator.live --run runs/2026-09-20-st-peter-fort-collins --speed 30 --until 720
 
 # script a person grabbing the keyboard at 10:00, to exercise the deference rules
-python3 -m slide_operator.live --run runs/2026-09-20 --speed 30 --intervene 600:9
+python3 -m slide_operator.live --run runs/2026-09-20-st-peter-fort-collins --speed 30 --intervene 600:9
 
 # drive PowerPoint for real, from the sound-board feed
-python3 -m slide_operator.live --run runs/2026-09-20 --deck powerpoint \
+python3 -m slide_operator.live --run runs/2026-09-20-st-peter-fort-collins --deck powerpoint \
     --audio device --asr live
 ```
 
@@ -121,7 +140,7 @@ path as rehearsed, not proven.
 ### Publishing the showcase
 
 ```bash
-python3 -m slide_operator.replay.site runs/2026-09-20      # -> docs/2026-09-20/
+python3 -m slide_operator.replay.site runs/2026-09-20-st-peter-fort-collins      # -> docs/2026-09-20-st-peter-fort-collins/
 ```
 
 Each service gets its own directory under `docs/`, and the landing page at the root
@@ -138,7 +157,7 @@ is rebuilt to list them.
 | `slide_operator/training/` | marks, the operator interface, runner and scorer, intake |
 | `slide_operator/live/` | live harness, operator HUD, intervention rules |
 | `slide_operator/deck_control/` | PowerPoint via AppleScript; an in-memory deck for testing |
-| `runs/<date>/` | one service's bundle: recording, deck, bulletin, manifest and marks are committed; the rest is derived |
+| `runs/<key>/` | one service's bundle: recording, deck, bulletin, manifest, marks and feedback are committed; the rest is derived |
 | `docs/` | the published site — a landing page plus one directory per service |
 
 ## Documents

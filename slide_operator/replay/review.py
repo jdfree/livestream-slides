@@ -1,7 +1,7 @@
 """The marking harness: listen to a service and mark every transition.
 
-    python -m slide_operator.replay.review runs/<date>
-    python -m slide_operator.replay.serve 8791      # then open /<date>/review/
+    python -m slide_operator.replay.review runs/<key>
+    python -m slide_operator.replay.serve 8791      # then open /<key>/review/
 
 The person is the operator here. Their own transition marks drive what is on
 screen: press **Mark 8 → 9** and slide 9 is up from that moment, and replaying
@@ -10,7 +10,9 @@ record — it follows the marks while the audio runs, and can be set by hand (or
 clicking a nearby slide) when the wrong slide is showing or one is skipped. Notes
 can be added at any moment.
 
-Everything goes into runs/<date>/marks.json (training/marks.py). Whatever operator
+Everything goes into runs/<key>/marks.json (training/marks.py). The page reads
+that file when it opens rather than carrying a copy, and each save names the
+version it started from, so a tab left open cannot write over newer marks. Whatever operator
 was last replayed (training/runner.py) appears as a separate comparison track: its
 transitions, timed against the person's.
 """
@@ -24,7 +26,6 @@ import tempfile
 from pathlib import Path
 
 from ..ingest import deck as deck_mod
-from ..training import marks as marks_mod
 
 SLIDE_WIDTH = 960
 
@@ -84,7 +85,6 @@ def build(run: Path) -> Path:
                     "text": (s.lyrics or s.body).replace("\n", " ")[:400],
                     "src": "sheet-music OCR" if s.lyrics else "slide text"}
                    for s in slides],
-        "marks": marks_mod.load(run),
         "operator": None if dec is None else {
             "name": dec.get("operator", "engine"),
             "foresight": dec.get("foresight", []),
@@ -219,7 +219,9 @@ const OP = D.operator, opMoves = OP ? OP.moves : [];
 const TOL = 2.0;                                   // same as training/score.py
 const round1 = (t) => Math.round(t * 10) / 10;
 
-let marks = D.marks.slice();
+// Read fresh on every load; marksTag is the version this page holds, sent with
+// every save so the server can refuse one made from a stale copy.
+let marks = [], marksTag = null, loaded = false;
 const sortMarks = () => marks.sort((a, b) => a.t - b.t);
 const trans = () => marks.filter((m) => m.type === 'transition').sort((a, b) => a.t - b.t);
 // Your marks are the deck: what they put on screen at time t.
@@ -230,27 +232,35 @@ let manual = null;
 const autoPair = (t) => { const f = onScreenAt(t); return { f, g: after(f) }; };
 const pairAt = (t) => manual || autoPair(t);
 
-$('title').innerHTML = `<a href="/">Services</a> / Marking · ${esc(D.run)}`;
-document.title = `Marking · ${D.run}`;
+const KEY = decodeURIComponent(location.pathname.split('/')[1]) || D.run;
+$('title').innerHTML = `<a href="/">Services</a> / Marking · ${esc(KEY)} · <a href="../demo/">Demo</a>`;
+document.title = `Marking · ${KEY}`;
 
 // ---- saving ---------------------------------------------------------------
 function setSave(text, err) { $('saveState').textContent = text; $('saveState').className = err ? 'err' : ''; }
-async function save() {
+let saving = Promise.resolve();
+function save() { saving = saving.then(saveNow); return saving; }
+async function saveNow() {
   sortMarks();
   const body = JSON.stringify(marks, null, 2);
   try {
-    const r = await fetch(D.save, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body});
+    const r = await fetch(D.save, {method: 'PUT', headers: {'Content-Type': 'application/json', 'If-Match': marksTag}, body});
+    if (r.status === 409 || r.status === 428) {
+      loaded = false;
+      throw new Error('the marks were changed elsewhere since this page opened; reload it');
+    }
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    marksTag = r.headers.get('ETag');
     setSave(`saved · ${marks.length} marks`);
   } catch (err) {
-    try { localStorage.setItem(`marks:${D.run}`, body); } catch (e) {}
-    setSave(`NOT saved to the bundle (${String(err.message || err).slice(0, 60)}) — Copy keeps them`, true);
+    try { localStorage.setItem(`marks:${KEY}`, body); } catch (e) {}
+    setSave(`NOT saved (${String(err.message || err).slice(0, 90)}) — Copy keeps them`, true);
   }
 }
 $('copy').onclick = async () => {
   const text = JSON.stringify(sortMarks(), null, 2);
   try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; }
-  catch (err) { window.prompt(`Copy these into runs/${D.run}/marks.json:`, text); }
+  catch (err) { window.prompt(`Copy these into runs/${KEY}/marks.json:`, text); }
   setTimeout(() => { $('copy').textContent = 'Copy'; }, 1500);
 };
 
@@ -280,6 +290,7 @@ function stepPair(d) {
 
 // ---- marking ----------------------------------------------------------------
 function mark() {
+  if (!loaded) return;
   const p = pairAt(audio.currentTime);
   if (p.g == null) return;
   marks.push({t: round1(audio.currentTime), type: 'transition', from: p.f, to: p.g});
@@ -289,7 +300,7 @@ function mark() {
 }
 function addNote() {
   const text = $('noteText').value.trim();
-  if (!text) return;
+  if (!text || !loaded) return;
   marks.push({t: round1(audio.currentTime), type: 'note', text, slide: onScreenAt(audio.currentTime)});
   $('noteText').value = '';
   save(); renderAll();
@@ -467,8 +478,15 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === '[') stepPair(-1);
   else if (e.key === ']') stepPair(1);
 });
-setSave(marks.length ? `${marks.length} marks loaded` : 'no marks yet');
 renderAll();
+fetch(D.save, {cache: 'no-store'}).then(async (r) => {
+  if (!r.ok) throw new Error(`${r.status}`);
+  marksTag = r.headers.get('ETag');
+  marks = await r.json();
+  loaded = true;
+  setSave(marks.length ? `${marks.length} marks loaded` : 'no marks yet');
+  renderAll();
+}).catch((err) => setSave(`could not load the marks (${err.message}) — marking is off`, true));
 </script>
 </body></html>
 '''

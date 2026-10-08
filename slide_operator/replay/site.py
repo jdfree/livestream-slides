@@ -1,15 +1,17 @@
-"""Build the static showcase site for GitHub Pages.
+"""The demo page: an operator's run over a service, against the person's marks.
 
-    python -m slide_operator.replay.site runs/2026-09-13     # -> docs/2026-09-13/
-    python -m slide_operator.replay.site --index docs        # rebuild the landing page
+    python -m slide_operator.replay.site runs/<key>     # publish -> docs/<key>/
+    python -m slide_operator.replay.site --index docs   # rebuild the landing page
 
-The same service the review harness shows, as a page that can be served from
-anywhere: the audio, the timeline, the slide the engine had on screen, what it
-believed that slide said, every decision and its reason, and the human record it
-is graded against.
+Plays the service and shows what the operator had on screen at every moment, what
+it believed that slide said, every decision and its reason, and each of the
+person's marked transitions as on time, late, early or never shown.
 
-It is read-only by construction — a static host has nothing to write back to — so
-the marking controls are gone. Everything else the harness does is here.
+The local server renders it per request at /<key>/demo/?op=<operator>, so the
+score always reflects the marks as they are now; there it also lets you pick an
+operator, run it again, and leave feedback on what it did (training/feedback.py).
+Published to GitHub Pages it is the same page, read-only — a static host has
+nothing to write back to.
 
 The score is computed here, by training/score.py — the same scorer the command line uses — so the
 published numbers cannot drift from the real scorer.
@@ -22,15 +24,17 @@ import sys
 from pathlib import Path
 
 from ..ingest import deck as deck_mod, melody
-from ..training import marks as marks_mod, score as score_mod
+from ..training import feedback as feedback_mod, marks as marks_mod, runner, score as score_mod
+from ..training.operators import OPERATORS
 
 
-def build(run: Path, out: Path) -> Path:
-    out.mkdir(parents=True, exist_ok=True)
+def payload(run: Path, operator: str = runner.DEFAULT, audio: str = "audio.webm",
+            slides_url: str = "slides/") -> dict:
     slides = deck_mod.load(run / "deck.pptx")
     melody.attach(slides, run / "deck.pptx", run / "lyrics.json")
-    dec = json.loads((run / "decisions.json").read_text())
-    moves = dec["moves"]
+    dpath = runner.decisions_path(run, operator)
+    dec = json.loads(dpath.read_text()) if dpath.exists() else None
+    moves = dec["moves"] if dec else []
     words = [json.loads(l) for l in open(run / "words.jsonl")]
     music = json.loads((run / "music.json").read_text())
     vpath = run / "voices.json"
@@ -41,7 +45,48 @@ def build(run: Path, out: Path) -> Path:
     res = score_mod.score(marks, moves)
     notes = [{"t": m["t"], "text": m["text"], "slide": m.get("slide")}
              for m in marks if m["type"] == "note"]
+    b = run / "bundle.json"
+    return {
+        "run": run.name,
+        "title": json.loads(b.read_text()).get("title", "") if b.exists() else "",
+        "audio": audio,
+        "first": first,
+        "ran": dec is not None,
+        "slides": [{"index": s.index, "title": s.title, "img": f"{slides_url}{s.index:03d}.png",
+                    "text": (s.lyrics or s.body).replace("\n", " ")[:400],
+                    "src": "sheet-music OCR" if s.lyrics else "slide text"}
+                   for s in slides],
+        "moves": moves,
+        "marks": res["rows"],
+        "notes": notes,
+        "transitions": [{"t": m["t"], "to": m["to"]} for m in marks_mod.transitions(marks)],
+        "operator": operator,
+        "foresight": dec.get("foresight", []) if dec else list(getattr(OPERATORS.get(operator), "foresight", ())),
+        "score": {"correct": res["correct"], "checked": res["checked"],
+                  "late": res["late"], "early": res["early"], "never": res["never"]},
+        "music": [[r["t0"], r["t1"]] for r in music["regions"]],
+        "voices": [[v["t0"], v["t1"], v["role"], v["mode"]] for v in voices],
+        "words": [[w["start"], w["w"]] for w in words],
+    }
 
+
+def render(data: dict) -> str:
+    return PAGE.replace("__DATA__", json.dumps(data).replace("</", "<\\/"))
+
+
+def demo_page(run: Path, operator: str, feedback_tag: str) -> str:
+    """The page as the local server shows it: with operator choice, a re-run
+    button, and feedback saved beside the marks."""
+    data = payload(run, operator, "../audio.webm", "../review/slides/")
+    data["local"] = {"operators": list(OPERATORS), "feedback": feedback_mod.load(run),
+                     "feedbackTag": feedback_tag}
+    return render(data)
+
+
+def build(run: Path, out: Path) -> Path:
+    """Publish the engine's run as a static page under docs/."""
+    out.mkdir(parents=True, exist_ok=True)
+    data = payload(run)
     # Slide images are copied by the caller or here if they are not already there.
     src = run / "review" / "slides"
     dst = out / "slides"
@@ -49,35 +94,14 @@ def build(run: Path, out: Path) -> Path:
     for png in sorted(src.glob("*.png")):
         if not (dst / png.name).exists():
             shutil.copy2(png, dst / png.name)
-
-    data = {
-        "run": run.name,
-        "audio": "audio.webm",
-        "first": first,
-        "slides": [{"index": s.index, "title": s.title, "img": f"slides/{s.index:03d}.png",
-                    "text": (s.lyrics or s.body).replace("\n", " ")[:400],
-                    "src": "sheet-music OCR" if s.lyrics else "slide text"}
-                   for s in slides],
-        "moves": moves,
-        "marks": res["rows"],
-        "notes": notes,
-        "operator": dec.get("operator", "engine"),
-        "foresight": dec.get("foresight", []),
-        "score": {"correct": res["correct"], "checked": res["checked"],
-                  "late": res["late"], "early": res["early"], "never": res["never"]},
-        "music": [[r["t0"], r["t1"]] for r in music["regions"]],
-        "voices": [[v["t0"], v["t1"], v["role"], v["mode"]] for v in voices],
-        "words": [[w["start"], w["w"]] for w in words],
-    }
-    payload = json.dumps(data).replace("</", "<\\/")
     page = out / "index.html"
-    page.write_text(PAGE.replace("__DATA__", payload))
+    page.write_text(render(data))
     # A summary beside the page, so the landing page lists services without
     # parsing a 135 KB document each time.
     (out / "meta.json").write_text(json.dumps({
-        "run": run.name, "slides": len(slides), "moves": len(moves),
-        "seconds": round(words[-1]["end"] if words else 0),
-        "correct": res["correct"], "checked": res["checked"]}, indent=2))
+        "run": run.name, "slides": len(data["slides"]), "moves": len(data["moves"]),
+        "seconds": round(data["words"][-1][0] if data["words"] else 0),
+        "correct": data["score"]["correct"], "checked": data["score"]["checked"]}, indent=2))
     return page
 
 
@@ -182,6 +206,14 @@ button.on{border-color:var(--accent);color:var(--accent)}
 .pill{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .pill.note{color:var(--warn);border-color:var(--warn)} .pill.ok{color:var(--ok);border-color:var(--ok)} .pill.bad{color:var(--bad);border-color:var(--bad)}
 footer{color:var(--muted);font-size:12px;margin:20px 0 8px}
+h1 a{color:var(--muted);text-decoration:none;font-weight:400}
+.localbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:10px 0}
+.localbar select,.localbar input{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:4px 8px}
+.localbar input{flex:1;min-width:200px}
+.localbar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 4px}
+#runState,#fbState{font-size:12px;color:var(--muted)} #runState.err,#fbState.err{color:var(--bad)}
+.mine{margin-left:10px;font-weight:400;color:var(--muted)} .mine.off{color:var(--bad);font-weight:600}
+.pill.fb{color:#8a5cc9;border-color:#8a5cc9}
 @media (max-width:860px){.stage,.cols{grid-template-columns:1fr}}
 </style></head>
 <body><div class="wrap">
@@ -192,14 +224,21 @@ footer{color:var(--muted);font-size:12px;margin:20px 0 8px}
   notes to the tune — and decides when to advance. Play the service and watch what it did.</p></div>
   <div class="tiles" id="tiles"></div>
 </header>
-<p class="guide">Click the timeline or any decision to jump there. <b>space</b> play/pause · <b>← →</b> 5 s · <b>N</b>/<b>P</b> next/previous transition.</p>
+<p class="guide">Click the timeline or any decision to jump there. <b>space</b> play/pause · <b>← →</b> 5 s · <b>N</b>/<b>P</b> next/previous transition<span id="fbKey" hidden> · <b>F</b> feedback</span>.</p>
+<div class="localbar" id="localbar" hidden>
+  <label>Operator <select id="opSel"></select></label>
+  <button id="runBtn">Run again</button><span id="runState"></span>
+  <span class="sep"></span>
+  <input id="fbText" placeholder="Feedback on what it is doing here (pinned to this moment)">
+  <button id="fbBtn">Add feedback</button><span id="fbState"></span>
+</div>
 <div class="controls">
   <audio id="audio" controls preload="none"></audio>
   <button data-rate="1" class="on">1×</button><button data-rate="2">2×</button><button data-rate="4">4×</button>
 </div>
 <svg id="timeline" viewBox="0 0 1000 64" preserveAspectRatio="none"></svg>
 <div class="legend"><i style="background:var(--accent)"></i>music playing<i style="background:#6a8fd8"></i>liturgist<i style="background:#d8a06a"></i>preacher<i style="background:#7bbf8a"></i>congregation · upper ticks: transitions · lower ticks: human marks (<span style="color:var(--ok)">met</span> / <span style="color:var(--bad)">missed</span>)</div>
-<div class="status" id="status"><span id="statusText"></span><span class="who" id="who"></span></div>
+<div class="status" id="status"><span id="statusText"></span><span class="mine" id="mine"></span><span class="who" id="who"></span></div>
 <div class="stage">
   <div class="pane"><h2><span>On screen</span><span id="engineLabel"></span></h2><img id="engineImg" alt="Slide on screen"><div class="slidetext" id="engineText"></div></div>
   <div class="pane"><h2><span>Nearby slides</span><span></span></h2><div class="neigh" id="neigh"></div></div>
@@ -214,6 +253,7 @@ footer{color:var(--muted);font-size:12px;margin:20px 0 8px}
 <script type="application/json" id="data">__DATA__</script>
 <script>
 const D = JSON.parse(document.getElementById('data').textContent);
+const L = D.local;                       // set only when the local server renders the page
 const $ = (id) => document.getElementById(id);
 const audio = $('audio');
 // Fetched as a blob rather than pointed straight at the file: a static host that
@@ -228,12 +268,18 @@ const bisect = (a, t) => { let lo = 0, hi = a.length - 1, r = -1; while (lo <= h
 const moveT = D.moves.map((m) => m.t), wordT = D.words.map((w) => w[0]);
 const engineAt = (t) => { const i = bisect(moveT, t); return i < 0 ? D.first : D.moves[i].to; };
 const label = (i) => `${i} · ${bySlide[i] ? bySlide[i].title : ''}`;
+const markT = D.transitions.map((m) => m.t);
+const markedAt = (t) => { const i = bisect(markT, t); return i < 0 ? D.first : D.transitions[i].to; };
+let feedback = L ? L.feedback.slice() : [], fbTag = L ? L.feedbackTag : null;
+const mineFb = () => feedback.filter((f) => f.operator === D.operator);
 
-document.title = $('title').textContent = `Slide operator · ${D.run}`;
+document.title = `${L ? 'Demo' : 'Slide operator'} · ${D.run}`;
+$('title').innerHTML = L ? `<a href="/">Services</a> / Demo · ${esc(D.run)} · <a href="../review/">Mark</a>`
+                         : `Slide operator · ${esc(D.run)}`;
 const S = D.score;
 // With no marks every counter is zero, which reads as a clean sweep rather than
 // as "nobody has looked at this yet". Say the latter.
-$('tiles').innerHTML = (S.checked
+$('tiles').innerHTML = (!D.ran ? [[`${D.operator} has not been run on this service`, '—']] : S.checked
   ? [['Marked transitions on time', `${S.correct}/${S.checked}`], ['Late', S.late], ['Early', S.early],
      ['Never shown', S.never], ['Transitions made', D.moves.length]]
   : [['Transitions made', D.moves.length], ['Slides', D.slides.length], ['Not yet reviewed', '—']])
@@ -256,6 +302,7 @@ function drawTimeline() {
   for (const m of D.moves) h += r(x(m.t), 33, 1.4, 11, 'var(--ink)');
   for (const mk of D.marks) h += r(x(mk.t), 47, 2, 14, mk.ok ? 'var(--ok)' : 'var(--bad)');
   for (const n of D.notes) h += r(x(n.t), 47, 1.4, 6, 'var(--warn)');
+  for (const f of mineFb()) h += r(x(f.t), 55, 1.4, 6, '#8a5cc9');
   svg.innerHTML = h + '<rect id="playhead" x="0" y="0" width="2.5" height="64" style="fill:var(--accent)"/>';
 }
 svg.addEventListener('click', (e) => { const b = svg.getBoundingClientRect(); seek(((e.clientX - b.left) / b.width) * duration); });
@@ -282,6 +329,11 @@ function update() {
   const ph = $('playhead'); if (ph) ph.setAttribute('x', (t / duration) * 1000 - 1);
   const e = engineAt(t);
   $('statusText').textContent = `${fmt(t)} · on screen: ${label(e)}`;
+  if (D.transitions.length) {
+    const mk = markedAt(t);
+    $('mine').textContent = mk === e ? '· your marks agree' : `· your marks: ${label(mk)}`;
+    $('mine').className = 'mine' + (mk === e ? '' : ' off');
+  }
   const v = D.voices.find((x) => t >= x[0] && t < x[1]);
   $('who').textContent = v ? `${v[2]} · ${v[3]}` : 'silence';
   if (e !== lastEngine) {
@@ -310,7 +362,9 @@ for (const m of D.moves) {
   row.onclick = () => { seek(m.t - 8); audio.play(); };
   $('moves').appendChild(row);
 }
-if (!D.marks.length && !D.notes.length) {
+function renderRecord() {
+$('marks').querySelectorAll('.row').forEach((r) => r.remove());
+if (!D.marks.length && !D.notes.length && !mineFb().length) {
   const row = document.createElement('div');
   row.className = 'row';
   row.style.cursor = 'default';
@@ -318,11 +372,20 @@ if (!D.marks.length && !D.notes.length) {
     + 'Marks are made in the local review harness and committed with the service.</div>';
   $('marks').appendChild(row);
 }
-const record = [...D.marks.map((m) => ({...m, kind: 'transition'})), ...D.notes.map((n) => ({...n, kind: 'note'}))]
+const record = [...D.marks.map((m) => ({...m, kind: 'transition'})), ...D.notes.map((n) => ({...n, kind: 'note'})),
+                ...mineFb().map((f) => ({...f, kind: 'feedback', ref: f}))]
   .sort((a, b) => a.t - b.t);
 for (const mk of record) {
   const row = document.createElement('div');
-  if (mk.kind === 'note') {
+  if (mk.kind === 'feedback') {
+    row.className = 'row';
+    row.innerHTML = `<div><span class="t">${fmt(mk.t)}</span> &nbsp;<span class="pill fb">feedback</span>`
+      + ` <span class="why">${esc(mk.operator)} showed ${mk.showing}</span> <button data-a="del" style="float:right">✕</button></div><div>${esc(mk.text)}</div>`;
+    row.querySelector('[data-a="del"]').onclick = (e) => {
+      e.stopPropagation();
+      feedback = feedback.filter((f) => f !== mk.ref); saveFeedback(); renderRecord(); drawTimeline(); update();
+    };
+  } else if (mk.kind === 'note') {
     row.className = 'row';
     row.innerHTML = `<div><span class="t">${fmt(mk.t)}</span> &nbsp;<span class="pill note">note</span></div><div class="why">${esc(mk.text)}</div>`;
   } else {
@@ -337,11 +400,59 @@ for (const mk of record) {
   row.onclick = () => { seek(mk.t - 6); audio.play(); };
   $('marks').appendChild(row);
 }
+}
+renderRecord();
+
+// ---- local only: choose and re-run an operator, leave feedback -------------
+async function saveFeedback() {
+  const body = JSON.stringify(feedback, null, 2);
+  try {
+    const r = await fetch('../feedback.json', {method: 'PUT', headers: {'Content-Type': 'application/json', 'If-Match': fbTag}, body});
+    if (r.status === 409 || r.status === 428) throw new Error('feedback was changed elsewhere; reload the page');
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    fbTag = r.headers.get('ETag');
+    $('fbState').textContent = 'saved'; $('fbState').className = '';
+  } catch (err) { $('fbState').textContent = `NOT saved: ${err.message}`; $('fbState').className = 'err'; }
+}
+function addFeedback() {
+  const text = $('fbText').value.trim();
+  if (!text) return;
+  const t = Math.round(audio.currentTime * 10) / 10;
+  feedback.push({t, operator: D.operator, showing: engineAt(t), text});
+  feedback.sort((a, b) => a.t - b.t);
+  $('fbText').value = '';
+  saveFeedback(); renderRecord(); drawTimeline(); update();
+}
+async function rerun() {
+  $('runBtn').disabled = true;
+  const st = $('runState'); st.className = ''; st.textContent = 'running…';
+  const r = await fetch('/api/run', {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                     body: JSON.stringify({service: D.run, operator: D.operator})});
+  const j = await r.json();
+  if (!r.ok) { st.textContent = j.error; st.className = 'err'; $('runBtn').disabled = false; return; }
+  const poll = async () => {
+    const s = await (await fetch(`/api/jobs/${j.job}`)).json();
+    if (s.state === 'done') location.reload();
+    else if (s.state === 'failed') { st.textContent = `failed: ${s.error}`; st.className = 'err'; $('runBtn').disabled = false; }
+    else { st.textContent = `running… ${s.elapsed}s`; setTimeout(poll, 1000); }
+  };
+  poll();
+}
+if (L) {
+  $('localbar').hidden = false; $('fbKey').hidden = false;
+  for (const name of L.operators) $('opSel').add(new Option(name, name, false, name === D.operator));
+  $('opSel').onchange = () => { location.search = `?op=${encodeURIComponent($('opSel').value)}`; };
+  $('runBtn').textContent = D.ran ? 'Run again' : `Run ${D.operator}`;
+  $('runBtn').onclick = rerun;
+  $('fbBtn').onclick = addFeedback;
+  $('fbText').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addFeedback(); } e.stopPropagation(); });
+}
 
 document.querySelectorAll('[data-rate]').forEach((b) => { b.onclick = () => { audio.playbackRate = +b.dataset.rate; document.querySelectorAll('[data-rate]').forEach((x) => x.classList.toggle('on', x === b)); }; });
 document.addEventListener('keydown', (e) => {
-  if (e.target === audio || e.metaKey || e.ctrlKey) return;
+  if (e.target === audio || e.metaKey || e.ctrlKey || ['INPUT', 'SELECT'].includes(e.target.tagName)) return;
   const t = audio.currentTime;
+  if (L && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); $('fbText').focus(); return; }
   if (e.key === ' ') { e.preventDefault(); audio.paused ? audio.play() : audio.pause(); }
   else if (e.key === 'ArrowLeft') seek(t - 5);
   else if (e.key === 'ArrowRight') seek(t + 5);

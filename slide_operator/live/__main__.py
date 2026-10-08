@@ -2,11 +2,11 @@
 
 Rehearse against a recording, with a deck that exists only in memory:
 
-    python3 -m slide_operator.live --run runs/2026-09-13 --speed 30 --until 700
+    python3 -m slide_operator.live --run runs/2026-09-13-st-peter-fort-collins --speed 30 --until 700
 
 Drive PowerPoint for real, from the sound-board feed:
 
-    python3 -m slide_operator.live --run runs/2026-09-13 --deck powerpoint \\
+    python3 -m slide_operator.live --run runs/2026-09-13-st-peter-fort-collins --deck powerpoint \\
         --audio device --asr live
 
 `--intervene 600:9` scripts a person moving the deck, which is the only way to

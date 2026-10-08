@@ -17,8 +17,9 @@ recording, which is the gap streaming latency opens.
 
 ## A bundle
 
-Everything about one service lives in `runs/<date>/`. The first eight files are
-the bundle and are committed; the rest is derived from them and rebuilt on demand.
+Everything about one service lives in `runs/<key>/`, where the key is its date and
+location (`2026-09-20-st-peter-fort-collins`). The first nine files are the bundle
+and are committed; the rest is derived from them and rebuilt on demand.
 
 | file | what it is |
 |---|---|
@@ -26,6 +27,7 @@ the bundle and are committed; the rest is derived from them and rebuilt on deman
 | `deck.pptx`, `folder.pdf` | the slides and the bulletin |
 | `bundle.json` | where they came from, and the service's title |
 | `marks.json` | **the person's transition marks and notes — the labels** |
+| `feedback.json` | comments on what an operator did, from its demo page |
 | `words.jsonl` | transcription, one timed word per line — frozen, because Whisper never transcribes the same audio identically twice |
 | `lyrics.json`, `notes.json` | OCR of the sheet-music strips; OMR of the same staves |
 | `audio.original.*`, `audio.wav` | the download, and 16 kHz mono for analysis |
@@ -33,6 +35,7 @@ the bundle and are committed; the rest is derived from them and rebuilt on deman
 | `align.json`, `note_align.json` | where each slide's printed words and notes were heard |
 | `service_map.json` | folder↔deck correlation, covers, un-slided elements |
 | `decisions.json` | what the operator did, why, and any foresight it used |
+| `decisions.<name>.json` | the same for any operator other than the engine |
 | `review/` | the marking harness and rendered slide images |
 
 Only the transcription, the OCR and the OMR are slow. Everything iterated on is
@@ -42,10 +45,10 @@ fast: an operator replays a whole service in about a second.
 
 ```bash
 python3 -m slide_operator.training.ingest --youtube URL --slides PATH --bulletin PATH
-python3 -m slide_operator.training.runner runs/2026-09-20   # replay the engine
-python3 -m slide_operator.training.score  runs/2026-09-20   # score against the marks
-python3 -m slide_operator.replay.review   runs/2026-09-20   # rebuild the harness page
-python3 -m slide_operator.replay.serve    8791              # services, intake, harness
+python3 -m slide_operator.training.runner runs/2026-09-20-st-peter-fort-collins   # replay the engine
+python3 -m slide_operator.training.score  runs/2026-09-20-st-peter-fort-collins   # score against the marks
+python3 -m slide_operator.replay.review   runs/2026-09-20-st-peter-fort-collins   # rebuild the harness page
+python3 -m slide_operator.replay.serve    8791              # services, intake, marking, demo
 ```
 
 Deleting a cached file regenerates it. Deleting `music.json` invalidates the

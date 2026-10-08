@@ -1,13 +1,13 @@
 """Replay a bundle to an operator, strictly in time order.
 
-    python -m slide_operator.training.runner runs/<date> [--operator engine] [--latency 1.5]
+    python -m slide_operator.training.runner runs/<key> [--operator engine] [--latency 1.5]
 
 The runner owns the clock. Every TICK it hands the operator only what has become
 knowable since the last call: each transcribed word at the moment a streaming
 recogniser would have committed it (its end plus LATENCY), and each audio frame's
 level once the frame has finished. Nothing later is reachable through step().
 
-The result goes to runs/<date>/decisions.json for the default operator and to
+The result goes to runs/<key>/decisions.json for the default operator and to
 decisions.<name>.json for any other, stamped with the operator's name and any
 foresight it declared.
 """
@@ -55,9 +55,13 @@ def run(op, run_dir: Path, latency: float = LATENCY) -> dict:
             "latency": latency, "moves": moves}
 
 
+def decisions_path(run_dir: Path, name: str = DEFAULT) -> Path:
+    return run_dir / ("decisions.json" if name == DEFAULT else f"decisions.{name}.json")
+
+
 def main(run_dir: Path, name: str = DEFAULT, latency: float = LATENCY) -> dict:
     res = run(get(name), run_dir, latency)
-    out = run_dir / ("decisions.json" if name == DEFAULT else f"decisions.{name}.json")
+    out = decisions_path(run_dir, name)
     out.write_text(json.dumps(res, indent=2))
     mm = lambda t: f"{int(t // 60):2d}:{int(t % 60):02d}"
     titles = {s.index: s.title for s in preread(run_dir).slides}

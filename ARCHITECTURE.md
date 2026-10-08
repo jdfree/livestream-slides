@@ -54,12 +54,14 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
 | `replay/run.py` | **The engine.** Walks the service forward in time and decides when to advance. Runs as an operator (below). |
 | `replay/oracle.py` | Builds sung spans non-causally so the aligner knows which stretch of audio holds which hymn. Its `reference.json` is machinery, **not** a yardstick — see TESTING.md. |
 | `replay/review.py` | The marking harness: play a service, press **Mark f → g** at each transition, add notes. The person's marks drive the display; the last operator run is shown alongside. |
-| `replay/serve.py` | The local server: the services list, the intake page, the harness, and the one writable file per bundle, `marks.json`. |
+| `replay/site.py` | The demo page: an operator's run played back against the marks. Rendered per request by the server, with operator choice, re-run and feedback; published read-only to `docs/`. |
+| `replay/serve.py` | The local server: the services list, the intake page, the harness, the demo page, and the two writable files per bundle, `marks.json` and `feedback.json`. |
 
 ### Training
 
 | module | what it does |
 |---|---|
+| `training/feedback.py` | Comments on one operator's run, kept apart from the labels. |
 | `training/marks.py` | The labels: `{t, type: "transition", from, to}` and `{t, type: "note", text}` in one file per service, written in one canonical form so its git history shows only real edits. |
 | `training/operator.py` | What an operator may know, and when. `prepare` receives everything that can be read beforehand; `step` receives only what has been heard by time *t*. |
 | `training/runner.py` | Owns the clock and replays a bundle to an operator, strictly in time order. |
@@ -96,13 +98,13 @@ a cap on moves per minute, and a much longer dwell on covers.
 
 ```bash
 # rehearse against a recording, deck in memory, 30x speed
-python3 -m slide_operator.live --run runs/2026-09-13 --speed 30 --until 720
+python3 -m slide_operator.live --run runs/2026-09-13-st-peter-fort-collins --speed 30 --until 720
 
 # rehearse and watch a human take over at 10:50
-python3 -m slide_operator.live --run runs/2026-09-13 --speed 30 --intervene 650:9
+python3 -m slide_operator.live --run runs/2026-09-13-st-peter-fort-collins --speed 30 --intervene 650:9
 
 # drive PowerPoint for real, from the sound-board feed
-python3 -m slide_operator.live --run runs/2026-09-13 --deck powerpoint \
+python3 -m slide_operator.live --run runs/2026-09-13-st-peter-fort-collins --deck powerpoint \
     --audio device --asr live
 ```
 
