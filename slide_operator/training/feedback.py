@@ -2,7 +2,7 @@
 
 One file per service, runs/<key>/feedback.json:
 
-    {"t": 612.0, "operator": "engine", "showing": 15, "text": "moved before the amen"}
+    {"t": 612.0, "operator": "ML1", "showing": 15, "text": "moved before the amen"}
 
 Feedback is not a label — marks.json holds those. It is a comment on what one
 operator did, so it names the operator and the slide that operator had on screen

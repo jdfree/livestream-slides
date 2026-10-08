@@ -1,8 +1,8 @@
 """Operators that can be replayed against a bundle. Add one here to make it
 selectable from the runner's --operator flag."""
-from .engine import EngineOperator
+from .ml1 import ML1Operator
 
-OPERATORS = {"engine": EngineOperator}
+OPERATORS = {"ML1": ML1Operator}
 
 
 def get(name: str):

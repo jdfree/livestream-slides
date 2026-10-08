@@ -35,7 +35,7 @@ and are committed; the rest is derived from them and rebuilt on demand.
 | `align.json`, `note_align.json` | where each slide's printed words and notes were heard |
 | `service_map.json` | folder↔deck correlation, covers, un-slided elements |
 | `decisions.json` | what the operator did, why, and any foresight it used |
-| `decisions.<name>.json` | the same for any operator other than the engine |
+| `decisions.<name>.json` | the same for any operator other than ML1 |
 | `review/` | the marking harness and rendered slide images |
 
 Only the transcription, the OCR and the OMR are slow. Everything iterated on is
@@ -45,7 +45,7 @@ fast: an operator replays a whole service in about a second.
 
 ```bash
 python3 -m slide_operator.training.ingest --youtube URL --slides PATH --bulletin PATH
-python3 -m slide_operator.training.runner runs/2026-09-20-st-peter-fort-collins   # replay the engine
+python3 -m slide_operator.training.runner runs/2026-09-20-st-peter-fort-collins   # replay ML1
 python3 -m slide_operator.training.score  runs/2026-09-20-st-peter-fort-collins   # score against the marks
 python3 -m slide_operator.replay.review   runs/2026-09-20-st-peter-fort-collins   # rebuild the harness page
 python3 -m slide_operator.replay.serve    8791              # services, intake, marking, demo
@@ -67,7 +67,7 @@ screen at *t*" and so credited an operator that reached *g* early and was still 
 it. Arriving early is an error, and now counts as one.
 
 An operator that declared foresight gets a score stamped **not live-valid**. The
-engine does: its music map and lyric/note alignment are computed over the whole
+ML1 does: its music map and lyric/note alignment are computed over the whole
 recording.
 
 `reference.json` is **not** a measure. It is built non-causally to give the aligner

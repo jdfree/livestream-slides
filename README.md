@@ -1,8 +1,14 @@
 # Slide operator
 
-An AI that listens to a church service and advances the slide deck — the job a
-volunteer does from the back of the room, clicking at the right moment for ninety
-minutes.
+Machine learning that listens to a church service and advances the slide deck —
+the job a volunteer does from the back of the room, clicking at the right moment
+for ninety minutes.
+
+The current version, **ML1**, uses machine-learning models to hear and to read —
+Whisper for speech, macOS Vision for the lyrics printed in sheet music, homr for
+the printed notes, speaker embeddings for voices — and hand-written rules to
+decide when to advance. Your marks are its labels and its measure; nothing yet
+learns from them directly.
 
 Its central idea is that a slide operator does not transcribe what is said. They
 **follow printed words**, and when a hymn starts they follow **printed music**. So
@@ -28,7 +34,7 @@ A score is how many of the person's transitions an operator made within two
 seconds — late, early, or never shown otherwise. The site lists each service with
 its score; a service with no marks simply has not been reviewed yet.
 
-**The current engine is not live-valid.** Its sung-slide rules use a music map and
+**ML1 is not live-valid.** Its sung-slide rules use a music map and
 a lyric/note alignment computed over the *whole* recording before replay begins —
 knowledge of the future a live operator cannot have. Its results are stamped as
 such everywhere they appear. Rebuilding those inputs from audio heard so far is the
@@ -97,7 +103,7 @@ operator was showing.
 
 ## Writing an operator
 
-Anything that decides when the deck should move — the engine, Claude, another
+Anything that decides when the deck should move — ML1, Claude, another
 model — is an operator: an object with two methods, run by
 `slide_operator/training/runner.py`.
 
@@ -153,7 +159,7 @@ is rebuilt to list them.
 | `slide_operator/ingest/` | deck, worship folder, sheet-music OCR, optical music recognition |
 | `slide_operator/audio/` | music regions and tune period, forced alignment, note matching, voices |
 | `slide_operator/prepare/` | folder↔deck correlation |
-| `slide_operator/replay/` | the engine, the marking harness, the local server, the static site |
+| `slide_operator/replay/` | ML1's rules (`run.py`), the marking harness, the local server, the static site |
 | `slide_operator/training/` | marks, the operator interface, runner and scorer, intake |
 | `slide_operator/live/` | live harness, operator HUD, intervention rules |
 | `slide_operator/deck_control/` | PowerPoint via AppleScript; an in-memory deck for testing |

@@ -51,7 +51,7 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
 
 | module | what it does |
 |---|---|
-| `replay/run.py` | **The engine.** Walks the service forward in time and decides when to advance. Runs as an operator (below). |
+| `replay/run.py` | **The engine** — ML1's decision rules. Walks the service forward in time and decides when to advance. Runs as an operator (below). |
 | `replay/oracle.py` | Builds sung spans non-causally so the aligner knows which stretch of audio holds which hymn. Its `reference.json` is machinery, **not** a yardstick — see TESTING.md. |
 | `replay/review.py` | The marking harness: play a service, press **Mark f → g** at each transition, add notes. The person's marks drive the display; the last operator run is shown alongside. |
 | `replay/site.py` | The demo page: an operator's run played back against the marks. Rendered per request by the server, with operator choice, re-run and feedback; published read-only to `docs/`. |
@@ -66,10 +66,10 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
 | `training/operator.py` | What an operator may know, and when. `prepare` receives everything that can be read beforehand; `step` receives only what has been heard by time *t*. |
 | `training/runner.py` | Owns the clock and replays a bundle to an operator, strictly in time order. |
 | `training/score.py` | **The evaluation.** An operator's transitions against the person's. |
-| `training/operators/` | The registered operators. The engine is one, and declares its foresight. |
+| `training/operators/` | The registered operators. ML1 is one, and declares its foresight. |
 | `training/ingest.py`, `training/web.py` | Turn a YouTube recording, a deck and a bulletin into a new bundle, from the intake page or the command line. |
 
-## What the engine actually does
+## What ML1 actually does
 
 It holds a current slide and moves on positive evidence:
 
@@ -135,7 +135,7 @@ turns red and counts down the hold.
 3. **Sung precision depends on analysis prepared beforehand.** Notes, aligned
    lyrics and the music map are computed from a recording. Live, they must be built
    incrementally; until then the live engine leans on its word rules.
-4. **The engine uses foresight.** Its music map and lyric/note alignment are
+4. **ML1 uses foresight.** Its music map and lyric/note alignment are
    computed over the whole recording, so its scores overstate what it could do
    live. The operator interface makes that explicit and stamps every result.
 5. **Repeated text defeats alignment.** Where a hymn prints an identical refrain on

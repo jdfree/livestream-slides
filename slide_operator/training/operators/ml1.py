@@ -1,4 +1,5 @@
-"""The hand-written engine (replay/run.py), as an operator.
+"""ML1: the first version — machine-learning models to hear and read, hand-written
+rules (the engine in replay/run.py) to decide. As an operator.
 
 It is not live-valid. Its sung-slide rules lean on a music map and a lyric/note
 alignment computed over the whole recording, so it declares both as foresight.
@@ -11,8 +12,8 @@ from ...replay.run import Engine
 from ..operator import Decision, Foresight, PreRead
 
 
-class EngineOperator:
-    name = "engine"
+class ML1Operator:
+    name = "ML1"
     foresight = ("music map computed over the whole recording",
                  "lyric and note alignment computed over the whole recording")
 

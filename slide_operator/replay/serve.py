@@ -30,6 +30,7 @@ from pathlib import Path
 from ..training import feedback as feedback_mod, marks as marks_mod, web
 from ..training.ingest import KEY, WRITE_LOCK
 from ..training.operators import OPERATORS
+from ..training.runner import DEFAULT
 
 ROOT = Path(__file__).resolve().parents[2] / "runs"
 WRITABLE = re.compile(rf"^/({KEY})/(marks|feedback)\.json$")
@@ -96,7 +97,7 @@ class Handler(SimpleHTTPRequestHandler):
             run = ROOT / m.group(1)
             if not (run / "deck.pptx").exists():
                 return self.send_error(404, "no such service")
-            op = (re.search(r"(?:^|&)op=([\w-]+)", query) or [None, "engine"])[1]
+            op = (re.search(r"(?:^|&)op=([\w-]+)", query) or [None, DEFAULT])[1]
             if op not in OPERATORS:
                 return self.send_error(404, f"no operator {op!r}")
             from . import site

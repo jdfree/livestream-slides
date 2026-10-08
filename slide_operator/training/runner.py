@@ -1,6 +1,6 @@
 """Replay a bundle to an operator, strictly in time order.
 
-    python -m slide_operator.training.runner runs/<key> [--operator engine] [--latency 1.5]
+    python -m slide_operator.training.runner runs/<key> [--operator ML1] [--latency 1.5]
 
 The runner owns the clock. Every TICK it hands the operator only what has become
 knowable since the last call: each transcribed word at the moment a streaming
@@ -23,7 +23,7 @@ from . import marks as marks_mod, score as score_mod
 from .operator import Level, Word, foresight, preread
 from .operators import get
 
-DEFAULT = "engine"
+DEFAULT = "ML1"
 
 
 def run(op, run_dir: Path, latency: float = LATENCY) -> dict:

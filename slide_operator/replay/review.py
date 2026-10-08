@@ -86,7 +86,7 @@ def build(run: Path) -> Path:
                     "src": "sheet-music OCR" if s.lyrics else "slide text"}
                    for s in slides],
         "operator": None if dec is None else {
-            "name": dec.get("operator", "engine"),
+            "name": dec.get("operator", "ML1"),
             "foresight": dec.get("foresight", []),
             "moves": dec["moves"]},
         "music": [[r["t0"], r["t1"]] for r in music["regions"]],

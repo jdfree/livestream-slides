@@ -441,7 +441,7 @@ def main(run: Path, latency: float = LATENCY) -> None:
     """`python -m slide_operator.replay.run runs/<key>` still works: it is the engine
     replayed through the training runner, which owns the clock (training/runner.py)."""
     from ..training import runner
-    runner.main(run, "engine", latency)
+    runner.main(run, runner.DEFAULT, latency)
 
 
 if __name__ == "__main__":

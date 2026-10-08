@@ -126,8 +126,8 @@ a.card .meta{color:var(--muted);font-size:13px;margin-top:4px}
 footer{color:var(--muted);font-size:13px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
 </style></head><body><div class="wrap">
 <h1>Slide operator</h1>
-<p>An AI that listens to a church service and advances the slide deck, following the words and the
-music printed on the slides rather than transcribing what it hears. Each service below can be played
+<p>Machine learning that listens to a church service and advances the slide deck, following the words and
+the music printed on the slides rather than transcribing what it hears. Each service below can be played
 back: what it had on screen at every moment, every decision and why, and how it scored against a
 person who watched the same service and marked what belonged on screen.</p>
 __CARDS__
@@ -219,9 +219,8 @@ h1 a{color:var(--muted);text-decoration:none;font-weight:400}
 <body><div class="wrap">
 <header>
   <div><h1 id="title"></h1>
-  <p class="sub">An AI slide operator following a church service: it reads the deck and the worship folder
-  beforehand, then listens — aligning each slide's own printed words to the audio and matching the printed
-  notes to the tune — and decides when to advance. Play the service and watch what it did.</p></div>
+  <p class="sub">A slide operator following a church service: it reads the deck and the worship folder
+  beforehand, then listens and decides when to advance. Play the service and watch what it did.</p></div>
   <div class="tiles" id="tiles"></div>
 </header>
 <p class="guide">Click the timeline or any decision to jump there. <b>space</b> play/pause · <b>← →</b> 5 s · <b>N</b>/<b>P</b> next/previous transition<span id="fbKey" hidden> · <b>F</b> feedback</span>.</p>

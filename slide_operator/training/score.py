@@ -1,6 +1,6 @@
 """Score an operator against the person's transition marks — the only measure.
 
-    python -m slide_operator.training.score runs/<key> [--operator engine]
+    python -m slide_operator.training.score runs/<key> [--operator ML1]
 
 For every transition the person marked (from f to g at time t), find when the
 operator put slide g on screen, nearest to t. Within TOLERANCE either way it is a
@@ -51,8 +51,9 @@ def report(marks: list[dict], moves: list[dict]) -> dict:
 
 
 if __name__ == "__main__":
+    from . import runner     # here, not at the top: runner imports this module
     args = sys.argv[1:]
     run = Path(args[0])
-    name = args[args.index("--operator") + 1] if "--operator" in args else "engine"
-    dec = run / ("decisions.json" if name == "engine" else f"decisions.{name}.json")
+    name = args[args.index("--operator") + 1] if "--operator" in args else runner.DEFAULT
+    dec = runner.decisions_path(run, name)
     report(marks_mod.load(run), json.loads(dec.read_text())["moves"])
