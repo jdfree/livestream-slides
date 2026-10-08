@@ -125,6 +125,23 @@ not live-valid. Register it in `training/operators/` and replay it with
 python3 -m slide_operator.training.runner runs/2026-09-20-st-peter-fort-collins --operator <name>
 ```
 
+Two are registered. **ML1** is the rule engine above. **Jev** asks TypeSafe's
+decision model one closed question each second or so — stay, next, or skip — with
+the decision table of `SLIDE_OPERATOR.md` condensed into its instructions, the
+slide on screen and the two after it, what has been heard since it went up, what
+the sound is doing, and the pace of the hymn so far. It uses no foresight, and its
+own response time is charged to its timing. A whole service is about 3,300 calls
+and roughly $0.11. It needs `TYPESAFE_API_KEY`, which `.secrets` maps to
+`James/TypeSafe API Key` in Bitwarden:
+
+```bash
+secrets run -- python3 -m slide_operator.training.runner \
+    runs/2026-09-20-st-peter-fort-collins --operator Jev --until 600   # first 10 minutes
+```
+
+The demo page's **Run** button does the same for a whole service, and shows each
+run's calls, cost and response times beside its score.
+
 ### Driving a real deck
 
 ```bash

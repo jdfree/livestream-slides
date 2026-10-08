@@ -1,8 +1,9 @@
 """Operators that can be replayed against a bundle. Add one here to make it
 selectable from the runner's --operator flag."""
+from .jev import JevOperator
 from .ml1 import ML1Operator
 
-OPERATORS = {"ML1": ML1Operator}
+OPERATORS = {"ML1": ML1Operator, "Jev": JevOperator}
 
 
 def get(name: str):

@@ -168,9 +168,13 @@ def start_run(req: dict) -> tuple[int, dict]:
     if op not in OPERATORS:
         return 400, {"error": f"no operator {op!r}"}
 
+    cmd = [sys.executable, "-m", "slide_operator.training.runner", ingest.RUNS / key, "--operator", op]
+    if getattr(OPERATORS[op], "needs", ()):
+        # Its key comes from Bitwarden through the repo's .secrets manifest.
+        cmd = ["secrets", "run", "--"] + cmd
+
     def work(job, log):
-        ingest._run([sys.executable, "-m", "slide_operator.training.runner",
-                     ingest.RUNS / key, "--operator", op], log)
+        ingest._run(cmd, log)
         return key
     return _spawn(work)
 

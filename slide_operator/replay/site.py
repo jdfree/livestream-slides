@@ -42,6 +42,9 @@ def payload(run: Path, operator: str = runner.DEFAULT, audio: str = "audio.webm"
 
     first = slides[0].index
     marks = marks_mod.load(run)
+    until = dec.get("until") if dec else None
+    if until is not None:                  # a partial replay is scored on what it covered
+        marks = [m for m in marks if m["t"] <= until]
     res = score_mod.score(marks, moves)
     notes = [{"t": m["t"], "text": m["text"], "slide": m.get("slide")}
              for m in marks if m["type"] == "note"]
@@ -61,6 +64,8 @@ def payload(run: Path, operator: str = runner.DEFAULT, audio: str = "audio.webm"
         "notes": notes,
         "transitions": [{"t": m["t"], "to": m["to"]} for m in marks_mod.transitions(marks)],
         "operator": operator,
+        "until": until,
+        "stats": dec.get("stats") if dec else None,
         "foresight": dec.get("foresight", []) if dec else list(getattr(OPERATORS.get(operator), "foresight", ())),
         "score": {"correct": res["correct"], "checked": res["checked"],
                   "late": res["late"], "early": res["early"], "never": res["never"]},
@@ -283,7 +288,9 @@ $('tiles').innerHTML = (!D.ran ? [[`${D.operator} has not been run on this servi
      ['Never shown', S.never], ['Transitions made', D.moves.length]]
   : [['Transitions made', D.moves.length], ['Slides', D.slides.length], ['Not yet reviewed', '—']])
   .map(([k, v]) => `<div class="tile"><b>${v}</b>${k}</div>`).join('')
-  + (D.foresight.length ? `<div class="tile" title="${esc(D.foresight.join('; '))}"><b style="font-size:13px;color:var(--bad)">not live-valid</b>${esc(D.operator)} used foresight</div>` : '');
+  + (D.foresight.length ? `<div class="tile" title="${esc(D.foresight.join('; '))}"><b style="font-size:13px;color:var(--bad)">not live-valid</b>${esc(D.operator)} used foresight</div>` : '')
+  + (D.until != null ? `<div class="tile"><b style="font-size:13px">first ${fmt(D.until)}</b>replayed and scored</div>` : '')
+  + (D.stats && D.stats.calls != null ? `<div class="tile" title="${esc(`${D.stats.input_tokens} input tokens · ${D.stats.errors} errors · model ${D.stats.model}`)}"><b style="font-size:13px">$${D.stats.cost_usd} · ${D.stats.calls} calls</b>median reply ${D.stats.latency_median_s}s, 90% ≤ ${D.stats.latency_p90_s}s</div>` : '');
 $('movesCount').textContent = D.moves.length;
 $('marksCount').textContent = S.checked ? `${S.correct} of ${S.checked} met` : 'not yet marked';
 $('foot').innerHTML = `Graded only against the transitions a person marked while listening to the service. `

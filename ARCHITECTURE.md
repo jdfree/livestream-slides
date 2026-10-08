@@ -66,7 +66,7 @@ audio.wav  ─┬─► asr/record.py     ─► words.jsonl       │          
 | `training/operator.py` | What an operator may know, and when. `prepare` receives everything that can be read beforehand; `step` receives only what has been heard by time *t*. |
 | `training/runner.py` | Owns the clock and replays a bundle to an operator, strictly in time order. |
 | `training/score.py` | **The evaluation.** An operator's transitions against the person's. |
-| `training/operators/` | The registered operators. ML1 is one, and declares its foresight. |
+| `training/operators/` | The registered operators: ML1, which declares its foresight, and Jev, which asks TypeSafe's decision model a stay/next/skip question as the service unfolds. |
 | `training/ingest.py`, `training/web.py` | Turn a YouTube recording, a deck and a bulletin into a new bundle, from the intake page or the command line. |
 
 ## What ML1 actually does
