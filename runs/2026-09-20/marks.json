@@ -151,11 +151,10 @@
     "text": "Amen on 19 means transition"
   },
   {
-    "t": 755.7,
+    "t": 757.3,
     "type": "transition",
     "from": 20,
-    "to": 21,
-    "text": "engine's transition, accepted as correct"
+    "to": 21
   },
   {
     "t": 796.0,
