@@ -58,8 +58,7 @@ STEPS = [
 
 def _env() -> dict:
     """launchd hands its jobs a bare PATH; the tools live elsewhere."""
-    extra = [str(Path(sys.executable).parent), "/opt/homebrew/bin", "/usr/local/bin",
-             str(Path.home() / ".pyenv/shims")]
+    extra = [str(Path(sys.executable).parent), "/opt/homebrew/bin", "/usr/local/bin"]
     env = dict(os.environ)
     env["PATH"] = os.pathsep.join(extra + [env.get("PATH", "/usr/bin:/bin")])
     return env

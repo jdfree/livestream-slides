@@ -29,3 +29,4 @@ runs/.*
 # service; September 6 was abandoned for poor audio.
 runs/2026-07-19-st-peter-fort-collins/
 runs/2026-09-06-st-peter-fort-collins/
+.venv/

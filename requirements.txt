@@ -1,0 +1,16 @@
+# Runtime deps for slide_operator (see README "Requirements").
+# Python 3.14: homr needs onnxruntime, which has no Python 3.15 wheel yet.
+mlx-whisper
+torch
+torchaudio
+homr
+PyMuPDF
+python-pptx
+python-docx
+numpy
+Resemblyzer
+music21
+rapidfuzz
+sounddevice
+pyobjc-framework-Vision
+Pillow
